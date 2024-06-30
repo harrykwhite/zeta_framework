@@ -1,3 +1,5 @@
+// NOTE: Consider breaking this up into more smaller header files.
+
 #ifndef __ZFW_GAME_H__
 #define __ZFW_GAME_H__
 
@@ -14,108 +16,17 @@
 #define ZFW_RENDER_LAYER_SPRITE_BATCH_SLOT_LIMIT 8192
 #define ZFW_RENDER_LAYER_SPRITE_BATCH_TEX_UNIT_LIMIT 32
 
-typedef struct zfw_game_run_info zfw_game_run_info_t;
-typedef struct zfw_game_cleanup_info zfw_game_cleanup_info_t;
-typedef struct zfw_user_game_init_func_data zfw_user_game_init_func_data_t;
-typedef struct zfw_user_game_tick_func_data zfw_user_game_tick_func_data_t;
-typedef struct zfw_user_window_resize_func_data zfw_user_window_resize_func_data_t;
-typedef struct zfw_window_state zfw_window_state_t;
-typedef struct zfw_input_state zfw_input_state_t;
-typedef struct zfw_glfw_window_user_data zfw_glfw_window_user_data_t;
-typedef struct zfw_user_tex_data zfw_user_tex_data_t;
-typedef struct zfw_user_shader_prog_data zfw_user_shader_prog_data_t;
-typedef struct zfw_user_asset_data zfw_user_asset_data_t;
-typedef struct zfw_builtin_shader_prog_data zfw_builtin_shader_prog_data_t;
-typedef struct zfw_render_layer zfw_render_layer_t;
-typedef struct zfw_sprite_batch_slot_key zfw_sprite_batch_slot_key_t;
-typedef struct zfw_view_state zfw_view_state_t;
+typedef struct
+{
+	zfw_vec_i_t size;
+	zfw_vec_i_t pos;
+} zfw_window_state_t;
 
-typedef unsigned char zfw_sprite_batch_activity_bits_t;
 typedef unsigned long long zfw_keys_down_bits_t;
 typedef unsigned char zfw_mouse_buttons_down_bits_t;
 typedef unsigned short zfw_gamepad_buttons_down_bits_t;
 
-typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_init_func_data_t *);
-typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_game_tick_func_data_t *);
-typedef void (*zfw_on_game_clean_func_t)(void *);
-typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_window_resize_func_data_t *);
-
-// DESCRIPTION: Key game information to be defined by the user and used when the game runs.
-struct zfw_game_run_info
-{
-	zfw_vec_i_t init_window_size;
-	const char *init_window_title;
-	zfw_bool_t window_resizable;
-
-	zfw_on_game_init_func_t on_init_func;
-	zfw_on_game_tick_func_t on_tick_func;
-	zfw_on_game_clean_func_t on_clean_func;
-	zfw_on_window_resize_func_t on_window_resize_func;
-
-	void *user_ptr; // NOTE: This can be a pointer to anything, and allows for state to persist across user-defined functions without needing to use global variables.
-};
-
-// DESCRIPTION: Pointers to data to be cleaned up when the game ends.
-struct zfw_game_cleanup_info
-{
-	GLFWwindow *glfw_window;
-
-	zfw_user_asset_data_t *user_asset_data;
-	zfw_builtin_shader_prog_data_t *builtin_shader_prog_data;
-
-	zfw_render_layer_t *root_view_render_layer;
-	zfw_render_layer_t *root_noview_render_layer;
-};
-
-// DESCRIPTION: Game state data to be provided to the user in their defined game initialization function.
-struct zfw_user_game_init_func_data
-{
-	zfw_vec_i_t window_size;
-
-	const zfw_user_asset_data_t *user_asset_data;
-	const zfw_builtin_shader_prog_data_t *builtin_shader_prog_data;
-
-	zfw_render_layer_t *root_view_render_layer;
-	zfw_render_layer_t *root_noview_render_layer;
-
-	zfw_view_state_t *view_state;
-};
-
-// DESCRIPTION: Game state data to be provided to the user in their defined game tick function.
-struct zfw_user_game_tick_func_data
-{
-	int *windowed;
-	zfw_vec_i_t window_size;
-
-	const zfw_input_state_t *input_state;
-	const zfw_input_state_t *input_state_last;
-
-	const zfw_user_asset_data_t *user_asset_data;
-
-	zfw_render_layer_t *root_view_render_layer;
-	zfw_render_layer_t *root_noview_render_layer;
-
-	zfw_view_state_t *view_state;
-};
-
-// DESCRIPTION: Game state data to be provided to the user in their defined window resize function.
-struct zfw_user_window_resize_func_data
-{
-	zfw_vec_i_t window_size;
-
-	const zfw_user_asset_data_t *user_asset_data;
-
-	zfw_render_layer_t *root_view_render_layer;
-	zfw_render_layer_t *root_noview_render_layer;
-};
-
-struct zfw_window_state
-{
-	zfw_vec_i_t size;
-	zfw_vec_i_t pos;
-};
-
-struct zfw_input_state
+typedef struct
 {
 	zfw_keys_down_bits_t keys_down_bits;
 	zfw_mouse_buttons_down_bits_t mouse_buttons_down_bits;
@@ -125,40 +36,44 @@ struct zfw_input_state
 
 	int gamepad_glfw_joystick_index;
 	float gamepad_axis_values[ZFW_NUM_GAMEPAD_AXIS_CODES];
-};
+} zfw_input_state_t;
 
 // DESCRIPTION: Window and input data intended for access through a user pointer in GLFW callback functions.
-struct zfw_glfw_window_user_data
+typedef struct
 {
 	zfw_window_state_t window_state;
 	zfw_input_state_t input_state;
-};
+} zfw_glfw_window_user_data_t;
 
-struct zfw_user_tex_data
+typedef struct
 {
 	int tex_count;
 
 	GLuint *gl_ids;
 	zfw_vec_i_t *sizes;
-};
+} zfw_user_tex_data_t;
 
-struct zfw_user_shader_prog_data
+typedef struct
 {
 	int prog_count;
 	GLuint *gl_ids;
-};
+} zfw_user_shader_prog_data_t;
 
-struct zfw_user_asset_data
+typedef struct
 {
 	zfw_user_tex_data_t tex_data;
 	zfw_user_shader_prog_data_t shader_prog_data;
-};
+} zfw_user_asset_data_t;
 
-struct zfw_builtin_shader_prog_data
+typedef struct
 {
 	GLuint textured_rect_prog_gl_id;
 	GLuint default_render_layer_prog_gl_id;
-};
+} zfw_builtin_shader_prog_data_t;
+
+typedef unsigned char zfw_sprite_batch_activity_bits_t;
+
+typedef struct zfw_render_layer zfw_render_layer_t;
 
 struct zfw_render_layer
 {
@@ -185,18 +100,92 @@ struct zfw_render_layer
 	GLuint sprite_batch_user_tex_indexes[ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_TEX_UNIT_LIMIT];
 };
 
-struct zfw_sprite_batch_slot_key
+typedef struct
 {
 	int batch_index;
 	int batch_slot_index;
 	int batch_tex_unit;
-};
+} zfw_sprite_batch_slot_key_t;
 
-struct zfw_view_state
+typedef struct
 {
 	zfw_vec_t pos;
 	float scale;
-};
+} zfw_view_state_t;
+
+// DESCRIPTION: Game state data to be provided to the user in their defined game initialization function.
+typedef struct
+{
+	zfw_vec_i_t window_size;
+
+	const zfw_user_asset_data_t *user_asset_data;
+	const zfw_builtin_shader_prog_data_t *builtin_shader_prog_data;
+
+	zfw_render_layer_t *root_view_render_layer;
+	zfw_render_layer_t *root_noview_render_layer;
+
+	zfw_view_state_t *view_state;
+} zfw_user_game_init_func_data_t;
+
+// DESCRIPTION: Game state data to be provided to the user in their defined game tick function.
+typedef struct
+{
+	int *windowed;
+	zfw_vec_i_t window_size;
+
+	const zfw_input_state_t *input_state;
+	const zfw_input_state_t *input_state_last;
+
+	const zfw_user_asset_data_t *user_asset_data;
+
+	zfw_render_layer_t *root_view_render_layer;
+	zfw_render_layer_t *root_noview_render_layer;
+
+	zfw_view_state_t *view_state;
+} zfw_user_game_tick_func_data_t;
+
+// DESCRIPTION: Game state data to be provided to the user in their defined window resize function.
+typedef struct
+{
+	zfw_vec_i_t window_size;
+
+	const zfw_user_asset_data_t *user_asset_data;
+
+	zfw_render_layer_t *root_view_render_layer;
+	zfw_render_layer_t *root_noview_render_layer;
+} zfw_user_window_resize_func_data_t;
+
+typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_init_func_data_t *);
+typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_game_tick_func_data_t *);
+typedef void (*zfw_on_game_clean_func_t)(void *);
+typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_window_resize_func_data_t *);
+
+// DESCRIPTION: Key game information to be defined by the user and used when the game runs.
+typedef struct
+{
+	zfw_vec_i_t init_window_size;
+	const char *init_window_title;
+	zfw_bool_t window_resizable;
+
+	zfw_on_game_init_func_t on_init_func;
+	zfw_on_game_tick_func_t on_tick_func;
+	zfw_on_game_clean_func_t on_clean_func;
+	zfw_on_window_resize_func_t on_window_resize_func;
+
+	void *user_ptr; // NOTE: This can be a pointer to anything, and allows for state to persist across user-defined functions without needing to use global variables.
+} zfw_game_run_info_t;
+
+// DESCRIPTION: Pointers to data to be cleaned up when the game ends.
+typedef struct
+{
+	GLFWwindow *glfw_window;
+
+	zfw_user_asset_data_t *user_asset_data;
+	zfw_builtin_shader_prog_data_t *builtin_shader_prog_data;
+
+	zfw_render_layer_t *root_view_render_layer;
+	zfw_render_layer_t *root_noview_render_layer;
+} zfw_game_cleanup_info_t;
 
 zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info);
 
