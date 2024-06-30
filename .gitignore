@@ -1,0 +1,8 @@
+.vscode/
+
+/castle_prototype/
+
+bin/
+obj/
+
+/build_and_run.bat
