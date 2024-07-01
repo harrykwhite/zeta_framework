@@ -86,6 +86,7 @@ struct zfw_render_layer
 
 	GLuint framebuffer_gl_id;
 	GLuint framebuffer_tex_gl_id;
+	GLuint frame_buffer_depth_renderbuffer_gl_id;
 	GLuint framebuffer_vert_array_gl_id;
 	GLuint framebuffer_vert_buf_gl_id;
 	GLuint framebuffer_elem_buf_gl_id;

@@ -234,6 +234,9 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	zfw_render_layer_t root_view_render_layer;
 	zfw_render_layer_t root_noview_render_layer;
 
@@ -419,7 +422,7 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			glClearColor(0.2f, 0.075f, 0.15f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			{
 				glUseProgram(builtin_shader_prog_data.textured_rect_prog_gl_id);
@@ -557,6 +560,12 @@ void zfw_init_render_layer(zfw_render_layer_t *const layer, const GLuint shader_
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, layer->framebuffer_tex_gl_id, 0);
+
+	// Set up the depth renderbuffer.
+	glGenRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
+	glBindRenderbuffer(GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_size.x, window_size.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
 
 	// Set up OpenGL objects for framebuffer texture rendering.
 	glGenVertexArrays(1, &layer->framebuffer_vert_array_gl_id);
@@ -1057,6 +1066,14 @@ static void resize_render_layer_and_children(zfw_render_layer_t *const layer, co
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, layer->framebuffer_tex_gl_id, 0);
 
+	// Delete the current depth renderbuffer and create a new one with the window size.
+	glDeleteRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
+
+	glGenRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
+	glBindRenderbuffer(GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_size.x, window_size.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
+
 	// Resize children.
 	for (int i = 0; i < layer->child_count; i++)
 	{
@@ -1069,7 +1086,7 @@ static void draw_sprite_batches_of_render_layer_and_children(const zfw_render_la
 	glBindFramebuffer(GL_FRAMEBUFFER, layer->framebuffer_gl_id);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (int j = 0; j < ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT; j++)
 	{
@@ -1121,6 +1138,7 @@ static void clean_render_layer_and_children(zfw_render_layer_t *const layer)
 	glDeleteBuffers(1, &layer->framebuffer_vert_buf_gl_id);
 	glDeleteVertexArrays(1, &layer->framebuffer_vert_array_gl_id);
 
+	glDeleteRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
 	glDeleteTextures(1, &layer->framebuffer_tex_gl_id);
 	glDeleteFramebuffers(1, &layer->framebuffer_gl_id);
 
