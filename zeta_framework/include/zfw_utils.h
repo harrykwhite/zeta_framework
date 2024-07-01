@@ -4,15 +4,13 @@
 typedef struct
 {
 	unsigned char r, g, b, a;
-}
-zfw_color_t;
+} zfw_color_t;
 
 typedef struct
 {
 	unsigned char *bytes;
 	int byte_count;
-}
-zfw_bitset_t;
+} zfw_bitset_t;
 
 inline zfw_color_t zfw_create_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {

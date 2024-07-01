@@ -8,34 +8,29 @@
 typedef struct
 {
 	float x, y;
-}
-zfw_vec_t;
+} zfw_vec_t;
 
 typedef struct
 {
 	int x, y;
-}
-zfw_vec_i_t;
+} zfw_vec_i_t;
 
 typedef struct
 {
 	int x, y;
 	int width, height;
-}
-zfw_rect_t;
+} zfw_rect_t;
 
 typedef struct
 {
 	float x, y;
 	float width, height;
-}
-zfw_rect_f_t;
+} zfw_rect_f_t;
 
 typedef struct
 {
 	float elems[4][4];
-}
-zfw_matrix_4x4_t;
+} zfw_matrix_4x4_t;
 
 zfw_vec_t zfw_create_vec(const float x, const float y);
 zfw_vec_i_t zfw_create_vec_i(const int x, const int y);

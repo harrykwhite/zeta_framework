@@ -70,8 +70,7 @@ typedef enum
 	ZFW_KEY_CODE_LEFT_ALT,
 
 	ZFW_NUM_KEY_CODES
-}
-zfw_key_code_t;
+} zfw_key_code_t;
 
 typedef enum
 {
@@ -80,8 +79,7 @@ typedef enum
 	ZFW_MOUSE_BUTTON_CODE_MIDDLE,
 
 	ZFW_NUM_MOUSE_BUTTON_CODES
-}
-zfw_mouse_button_code_t;
+} zfw_mouse_button_code_t;
 
 typedef enum
 {
@@ -106,8 +104,7 @@ typedef enum
 	ZFW_GAMEPAD_BUTTON_CODE_DPAD_LEFT,
 
 	ZFW_NUM_GAMEPAD_BUTTON_CODES
-}
-zfw_gamepad_button_code_t;
+} zfw_gamepad_button_code_t;
 
 typedef enum
 {
@@ -121,7 +118,6 @@ typedef enum
 	ZFW_GAMEPAD_AXIS_CODE_RIGHT_TRIGGER,
 
 	ZFW_NUM_GAMEPAD_AXIS_CODES
-}
-zfw_gamepad_axis_code_t;
+} zfw_gamepad_axis_code_t;
 
 #endif
