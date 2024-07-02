@@ -5,6 +5,9 @@
 
 #define ZFW_PI 3.1415926535897932384626433832795028841971f
 
+#define ZFW_RADS_AS_DEGS(X) (X * (180.0f / ZFW_PI))
+#define ZFW_DEGS_AS_RADS(X) (X * (ZFW_PI / 180.0f))
+
 typedef struct
 {
 	float x, y;
