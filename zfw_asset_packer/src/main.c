@@ -185,7 +185,7 @@ static char *get_packing_instrs_file_chars()
 	}
 
 	fseek(packing_instrs_file_fs, 0, SEEK_SET);
-	fread(packing_instrs_file_chars, sizeof(packing_instrs_file_chars[0]), packing_instrs_file_len, packing_instrs_file_fs);
+	fread(packing_instrs_file_chars, sizeof(*packing_instrs_file_chars), packing_instrs_file_len, packing_instrs_file_fs);
 
 	fclose(packing_instrs_file_fs);
 
@@ -205,7 +205,7 @@ static zfw_bool_t pack_texture(const char *const tex_rfp, FILE *const assets_fil
 
 	fwrite(&tex_width, sizeof(tex_width), 1, assets_file_fs);
 	fwrite(&tex_height, sizeof(tex_height), 1, assets_file_fs);
-	fwrite(tex_px_data, sizeof(tex_px_data[0]), tex_width * tex_height * ZFW_TEX_CHANNEL_COUNT, assets_file_fs);
+	fwrite(tex_px_data, sizeof(*tex_px_data), tex_width * tex_height * ZFW_TEX_CHANNEL_COUNT, assets_file_fs);
 
 	stbi_image_free(tex_px_data);
 
@@ -239,9 +239,9 @@ static zfw_bool_t pack_shader(const char *const shader_rfp, FILE *const assets_f
 	char shader_src_buf[ZFW_SHADER_SRC_MAX_LEN] = "";
 
 	fseek(shader_fs, 0, SEEK_SET);
-	fread(shader_src_buf, sizeof(shader_src_buf[0]), shader_src_size, shader_fs);
+	fread(shader_src_buf, sizeof(*shader_src_buf), shader_src_size, shader_fs);
 
-	fwrite(shader_src_buf, sizeof(shader_src_buf[0]), sizeof(shader_src_buf) / sizeof(shader_src_buf[0]), assets_file_fs);
+	fwrite(shader_src_buf, sizeof(*shader_src_buf), sizeof(shader_src_buf) / sizeof(*shader_src_buf), assets_file_fs);
 
 	fclose(shader_fs);
 

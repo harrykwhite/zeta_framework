@@ -4,6 +4,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// DESCRIPTION: Pointers to data to be cleaned up when the game ends.
+typedef struct
+{
+	GLFWwindow *glfw_window;
+
+	zfw_user_asset_data_t *user_asset_data;
+	zfw_builtin_shader_prog_data_t *builtin_shader_prog_data;
+
+	zfw_sprite_batch_data_t *view_sprite_batch_data;
+	zfw_sprite_batch_data_t *screen_sprite_batch_data;
+} zfw_game_cleanup_info_t;
+
+// DESCRIPTION: Window and input data intended for access through a user pointer in GLFW callback functions.
+typedef struct
+{
+	zfw_window_state_t window_state;
+	zfw_input_state_t input_state;
+} zfw_glfw_window_user_data_t;
+
 static void clean_game(zfw_game_cleanup_info_t *const cleanup_info);
 
 static void glfw_window_size_callback(GLFWwindow *glfw_window, int width, int height);
@@ -15,10 +34,10 @@ static void glfw_joystick_callback(int glfw_joystick_index, int glfw_event);
 
 static void reset_gamepad_state(zfw_input_state_t *const input_state);
 
-static void draw_render_layer_and_children(const zfw_render_layer_t *const layer, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data);
-static void resize_render_layer_and_children(zfw_render_layer_t *const layer, const zfw_vec_i_t window_size);
-static void draw_sprite_batches_of_render_layer_and_children(const zfw_render_layer_t *const layer, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data, const zfw_user_tex_data_t *const user_tex_data);
-static void clean_render_layer_and_children(zfw_render_layer_t *const layer);
+static void init_sprite_batch_data(zfw_sprite_batch_data_t *const batch_data);
+static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_index, const int batch_index, zfw_sprite_batch_data_t *const batch_data);
+static void draw_sprite_batches(zfw_sprite_batch_data_t *const batch_data, const zfw_user_tex_data_t *const user_tex_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data);
+static void clean_sprite_batch_data(zfw_sprite_batch_data_t *const batch_data);
 
 zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 {
@@ -143,11 +162,11 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 
 		if (user_asset_data.tex_data.tex_count)
 		{
-			user_asset_data.tex_data.gl_ids = malloc(user_asset_data.tex_data.tex_count * sizeof(user_asset_data.tex_data.gl_ids[0]));
+			user_asset_data.tex_data.gl_ids = malloc(sizeof(*user_asset_data.tex_data.gl_ids) * user_asset_data.tex_data.tex_count);
 
 			if (!user_asset_data.tex_data.gl_ids)
 			{
-				zfw_log_error("Failed to allocate %d bytes for texture OpenGL IDs!", user_asset_data.tex_data.tex_count * sizeof(user_asset_data.tex_data.gl_ids[0]));
+				zfw_log_error("Failed to allocate %d bytes for texture OpenGL IDs!", sizeof(*user_asset_data.tex_data.gl_ids) * user_asset_data.tex_data.tex_count);
 
 				run_info->on_clean_func(run_info->user_ptr);
 				clean_game(&cleanup_info);
@@ -155,11 +174,11 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 				return ZFW_FALSE;
 			}
 
-			user_asset_data.tex_data.sizes = malloc(user_asset_data.tex_data.tex_count * sizeof(user_asset_data.tex_data.sizes[0]));
+			user_asset_data.tex_data.sizes = malloc(sizeof(*user_asset_data.tex_data.sizes) * user_asset_data.tex_data.tex_count);
 
 			if (!user_asset_data.tex_data.sizes)
 			{
-				zfw_log_error("Failed to allocate %d bytes for texture sizes!", user_asset_data.tex_data.tex_count * sizeof(user_asset_data.tex_data.sizes[0]));
+				zfw_log_error("Failed to allocate %d bytes for texture sizes!", sizeof(*user_asset_data.tex_data.sizes) * user_asset_data.tex_data.tex_count);
 
 				run_info->on_clean_func(run_info->user_ptr);
 				clean_game(&cleanup_info);
@@ -186,7 +205,7 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 					return ZFW_FALSE;
 				}
 
-				fread(px_data, sizeof(px_data[0]), px_data_size / sizeof(px_data[0]), assets_file_fs);
+				fread(px_data, sizeof(*px_data), px_data_size / sizeof(*px_data), assets_file_fs);
 
 				glBindTexture(GL_TEXTURE_2D, user_asset_data.tex_data.gl_ids[i]);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -200,11 +219,11 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 
 		if (user_asset_data.shader_prog_data.prog_count)
 		{
-			user_asset_data.shader_prog_data.gl_ids = malloc(user_asset_data.shader_prog_data.prog_count * sizeof(user_asset_data.shader_prog_data.gl_ids[0]));
+			user_asset_data.shader_prog_data.gl_ids = malloc(sizeof(*user_asset_data.shader_prog_data.gl_ids) * user_asset_data.shader_prog_data.prog_count);
 
 			if (!user_asset_data.shader_prog_data.gl_ids)
 			{
-				zfw_log_error("Failed to allocate %d bytes for shader program OpenGL IDs!", user_asset_data.shader_prog_data.prog_count * sizeof(user_asset_data.shader_prog_data.gl_ids[0]));
+				zfw_log_error("Failed to allocate %d bytes for shader program OpenGL IDs!", sizeof(*user_asset_data.shader_prog_data.gl_ids) * user_asset_data.shader_prog_data.prog_count);
 
 				run_info->on_clean_func(run_info->user_ptr);
 				clean_game(&cleanup_info);
@@ -215,10 +234,10 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 			for (int i = 0; i < user_asset_data.shader_prog_data.prog_count; i++)
 			{
 				char vert_shader_src_buf[ZFW_SHADER_SRC_MAX_LEN];
-				fread(vert_shader_src_buf, sizeof(vert_shader_src_buf[0]), sizeof(vert_shader_src_buf) / sizeof(vert_shader_src_buf[0]), assets_file_fs);
+				fread(vert_shader_src_buf, sizeof(*vert_shader_src_buf), sizeof(vert_shader_src_buf) / sizeof(*vert_shader_src_buf), assets_file_fs);
 
 				char frag_shader_src_buf[ZFW_SHADER_SRC_MAX_LEN];
-				fread(frag_shader_src_buf, sizeof(frag_shader_src_buf[0]), sizeof(frag_shader_src_buf) / sizeof(frag_shader_src_buf[0]), assets_file_fs);
+				fread(frag_shader_src_buf, sizeof(*frag_shader_src_buf), sizeof(frag_shader_src_buf) / sizeof(*frag_shader_src_buf), assets_file_fs);
 
 				zfw_set_up_shader_prog(&user_asset_data.shader_prog_data.gl_ids[i], vert_shader_src_buf, frag_shader_src_buf);
 			}
@@ -228,31 +247,20 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 	// Initialize built-in shader programs.
 	zfw_builtin_shader_prog_data_t builtin_shader_prog_data;
 	zfw_set_up_shader_prog(&builtin_shader_prog_data.textured_rect_prog_gl_id, ZFW_BUILTIN_TEXTURED_RECT_VERT_SHADER_SRC, ZFW_BUILTIN_TEXTURED_RECT_FRAG_SHADER_SRC);
-	zfw_set_up_shader_prog(&builtin_shader_prog_data.default_render_layer_prog_gl_id, ZFW_BUILTIN_DEFAULT_RENDER_LAYER_VERT_SHADER_SRC, ZFW_BUILTIN_DEFAULT_RENDER_LAYER_FRAG_SHADER_SRC);
 
 	// Set up rendering.
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	zfw_sprite_batch_data_t view_sprite_batch_data;
+	cleanup_info.view_sprite_batch_data = &view_sprite_batch_data;
+	init_sprite_batch_data(&view_sprite_batch_data);
 
-	zfw_render_layer_t root_view_render_layer;
-	zfw_render_layer_t root_noview_render_layer;
+	zfw_sprite_batch_data_t screen_sprite_batch_data;
+	cleanup_info.screen_sprite_batch_data = &screen_sprite_batch_data;
+	init_sprite_batch_data(&screen_sprite_batch_data);
 
-	{
-		const float gl_verts[] = {
-			-1.0f, -1.0f, 0.0f, 0.0f,
-			1.0f, -1.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			-1.0f, 1.0f, 0.0f, 1.0f
-		};
-
-		zfw_init_render_layer(&root_view_render_layer, builtin_shader_prog_data.default_render_layer_prog_gl_id, gl_verts, ZFW_ARRAY_LEN(gl_verts), NULL, 0, glfw_window_user_data.window_state.size);
-		zfw_init_render_layer(&root_noview_render_layer, builtin_shader_prog_data.default_render_layer_prog_gl_id, gl_verts, ZFW_ARRAY_LEN(gl_verts), NULL, 0, glfw_window_user_data.window_state.size);
-	}
-
-	zfw_view_state_t view_state = { zfw_create_vec(0.0f, 0.0f), 1.0f };
+	zfw_view_state_t view_state = { zfw_create_vec_2d(0.0f, 0.0f), 1.0f };
 
 	// Run user-defined game initialization function.
 	{
@@ -260,8 +268,8 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 		init_data.window_size = glfw_window_user_data.window_state.size;
 		init_data.user_asset_data = &user_asset_data;
 		init_data.builtin_shader_prog_data = &builtin_shader_prog_data;
-		init_data.root_view_render_layer = &root_view_render_layer;
-		init_data.root_noview_render_layer = &root_noview_render_layer;
+		init_data.view_sprite_batch_data = &view_sprite_batch_data;
+		init_data.screen_sprite_batch_data = &screen_sprite_batch_data;
 		init_data.view_state = &view_state;
 
 		run_info->on_init_func(run_info->user_ptr, &init_data);
@@ -283,27 +291,17 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 
 	while (!glfwWindowShouldClose(glfw_window))
 	{
-		const zfw_vec_i_t window_size_last = glfw_window_user_data.window_state.size;
+		const zfw_vec_2d_i_t window_size_last = glfw_window_user_data.window_state.size;
 
 		glfwPollEvents();
 
-		// If the window has been resized, resize render layers and call user-defined window resize function.
-		if (glfw_window_user_data.window_state.size.x != window_size_last.x || glfw_window_user_data.window_state.size.y != window_size_last.y)
+		// If the window has been resized, call user-defined window resize function.
+		if ((glfw_window_user_data.window_state.size.x != window_size_last.x || glfw_window_user_data.window_state.size.y != window_size_last.y) && run_info->on_window_resize_func)
 		{
-			resize_render_layer_and_children(&root_view_render_layer, glfw_window_user_data.window_state.size);
-			resize_render_layer_and_children(&root_noview_render_layer, glfw_window_user_data.window_state.size);
-			zfw_log("Render layers resized.");
+			zfw_user_window_resize_func_data_t window_resize_data;
+			window_resize_data.window_size = glfw_window_user_data.window_state.size;
 
-			if (run_info->on_window_resize_func)
-			{
-				zfw_user_window_resize_func_data_t window_resize_data;
-				window_resize_data.window_size = glfw_window_user_data.window_state.size;
-				window_resize_data.user_asset_data = &user_asset_data;
-				window_resize_data.root_view_render_layer = &root_view_render_layer;
-				window_resize_data.root_noview_render_layer = &root_noview_render_layer;
-
-				run_info->on_window_resize_func(run_info->user_ptr, &window_resize_data);
-			}
+			run_info->on_window_resize_func(run_info->user_ptr, &window_resize_data);
 		}
 
 		// If we are in windowed mode, store the window state so that it can be accessed if later we're in fullscreen mode and want to go back.
@@ -355,21 +353,20 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 			// Execute ticks.
 			for (int i = 0; i < tick_count; i++)
 			{
-				// Run user-defined game tick function.
 				{
+					// Run user-defined game tick function.
 					zfw_user_game_tick_func_data_t tick_data;
 					tick_data.windowed = &windowed;
 					tick_data.window_size = glfw_window_user_data.window_state.size;
 					tick_data.input_state = &frame_input_state;
 					tick_data.input_state_last = &frame_input_state_last;
 					tick_data.user_asset_data = &user_asset_data;
-					tick_data.root_view_render_layer = &root_view_render_layer;
-					tick_data.root_noview_render_layer = &root_noview_render_layer;
+					tick_data.view_sprite_batch_data = &view_sprite_batch_data;
+					tick_data.screen_sprite_batch_data = &screen_sprite_batch_data;
 					tick_data.view_state = &view_state;
 
 					run_info->on_tick_func(run_info->user_ptr, &tick_data);
 				}
-				//
 
 				tick_dur_accum -= target_tick_dur;
 			}
@@ -377,7 +374,7 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 			// Windowed/Fullscreen Mode Swapping
 			if (windowed != windowed_last)
 			{
-				zfw_bool_t resize_render_layers = ZFW_TRUE;
+				zfw_bool_t call_user_window_resize_func = ZFW_TRUE;
 
 				if (!windowed)
 				{
@@ -391,7 +388,7 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 					else
 					{
 						zfw_log_error("Failed to switch to fullscreen as GLFW could not find a primary monitor.");
-						resize_render_layers = ZFW_FALSE;
+						call_user_window_resize_func = ZFW_FALSE;
 					}
 				}
 				else
@@ -399,30 +396,18 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 					glfwSetWindowMonitor(glfw_window, NULL, window_state_windowed.pos.x, window_state_windowed.pos.y, window_state_windowed.size.x, window_state_windowed.size.y, 0);
 				}
 
-				if (resize_render_layers)
+				if (call_user_window_resize_func && run_info->on_window_resize_func)
 				{
-					resize_render_layer_and_children(&root_view_render_layer, glfw_window_user_data.window_state.size);
-					resize_render_layer_and_children(&root_noview_render_layer, glfw_window_user_data.window_state.size);
-					zfw_log("Render layers resized.");
+					zfw_user_window_resize_func_data_t window_resize_data;
+					window_resize_data.window_size = glfw_window_user_data.window_state.size;
 
-					if (run_info->on_window_resize_func)
-					{
-						zfw_user_window_resize_func_data_t window_resize_data;
-						window_resize_data.window_size = glfw_window_user_data.window_state.size;
-						window_resize_data.user_asset_data = &user_asset_data;
-						window_resize_data.root_view_render_layer = &root_view_render_layer;
-						window_resize_data.root_noview_render_layer = &root_noview_render_layer;
-
-						run_info->on_window_resize_func(run_info->user_ptr, &window_resize_data);
-					}
+					run_info->on_window_resize_func(run_info->user_ptr, &window_resize_data);
 				}
 			}
 
 			// Rendering
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 			glClearColor(0.2f, 0.075f, 0.15f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT);
 
 			{
 				glUseProgram(builtin_shader_prog_data.textured_rect_prog_gl_id);
@@ -430,25 +415,24 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 				zfw_matrix_4x4_t view;
 				const int view_uni_location = glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_view");
 
-				zfw_init_identity_matrix_4x4(&view);
-				glUniformMatrix4fv(view_uni_location, 1, GL_FALSE, (GLfloat *)&view);
-
-				zfw_matrix_4x4_t proj;
-				zfw_init_ortho_matrix_4x4(&proj, 0.0f, (float)glfw_window_user_data.window_state.size.x, (float)glfw_window_user_data.window_state.size.y, 0.0f, -1.0f, 1.0f);
-				glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)&proj);
-
-				draw_sprite_batches_of_render_layer_and_children(&root_noview_render_layer, &builtin_shader_prog_data, &user_asset_data.tex_data);
-
-				scale_matrix_4x4(&view, view_state.scale);
+				view.elems[0][0] = view_state.scale;
+				view.elems[1][1] = view_state.scale;
+				view.elems[2][2] = 1.0f;
 				view.elems[3][0] = -view_state.pos.x * view_state.scale;
 				view.elems[3][1] = -view_state.pos.y * view_state.scale;
-				glUniformMatrix4fv(view_uni_location, 1, GL_FALSE, (GLfloat *)&view);
+				glUniformMatrix4fv(view_uni_location, 1, GL_FALSE, (GLfloat *)&view.elems);
 
-				draw_sprite_batches_of_render_layer_and_children(&root_view_render_layer, &builtin_shader_prog_data, &user_asset_data.tex_data);
+				zfw_matrix_4x4_t proj;
+				zfw_init_ortho_matrix_4x4(&proj, 0.0f, glfw_window_user_data.window_state.size.x, glfw_window_user_data.window_state.size.y, 0.0f, -1.0f, 1.0f);
+				glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)&proj.elems);
+
+				draw_sprite_batches(&view_sprite_batch_data, &user_asset_data.tex_data, &builtin_shader_prog_data);
+
+				zfw_init_identity_matrix_4x4(&view);
+				glUniformMatrix4fv(view_uni_location, 1, GL_FALSE, (GLfloat *)&view.elems);
+
+				draw_sprite_batches(&screen_sprite_batch_data, &user_asset_data.tex_data, &builtin_shader_prog_data);
 			}
-
-			draw_render_layer_and_children(&root_view_render_layer, &builtin_shader_prog_data);
-			draw_render_layer_and_children(&root_noview_render_layer, &builtin_shader_prog_data);
 
 			glfwSwapBuffers(glfw_window);
 		}
@@ -534,169 +518,7 @@ void zfw_set_up_shader_prog(GLuint *const shader_prog_gl_id, const char *const v
 	glDeleteShader(vert_shader_glid);
 }
 
-void zfw_init_render_layer(zfw_render_layer_t *const layer, const GLuint shader_prog_gl_id, const float *const init_gl_verts, const int gl_vert_count, zfw_render_layer_t *const parent, int sprite_batch_slot_count_default, const zfw_vec_i_t window_size)
-{
-	memset(layer, 0, sizeof(*layer));
-	memset(layer->sprite_batch_user_tex_indexes, -1, sizeof(layer->sprite_batch_user_tex_indexes));
-
-	layer->shader_prog_gl_id = shader_prog_gl_id;
-	layer->parent = parent;
-
-	if (!sprite_batch_slot_count_default)
-	{
-		sprite_batch_slot_count_default = ZFW_RENDER_LAYER_SPRITE_BATCH_SLOT_LIMIT;
-	}
-
-	layer->sprite_batch_slot_count_default = sprite_batch_slot_count_default;
-
-	// Set up the framebuffer.
-	glGenFramebuffers(1, &layer->framebuffer_gl_id);
-	glBindFramebuffer(GL_FRAMEBUFFER, layer->framebuffer_gl_id);
-
-	// Set up the framebuffer texture.
-	glGenTextures(1, &layer->framebuffer_tex_gl_id);
-	glBindTexture(GL_TEXTURE_2D, layer->framebuffer_tex_gl_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_size.x, window_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, layer->framebuffer_tex_gl_id, 0);
-
-	// Set up the depth renderbuffer.
-	glGenRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
-	glBindRenderbuffer(GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_size.x, window_size.y);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
-
-	// Set up OpenGL objects for framebuffer texture rendering.
-	glGenVertexArrays(1, &layer->framebuffer_vert_array_gl_id);
-	glBindVertexArray(layer->framebuffer_vert_array_gl_id);
-
-	glGenBuffers(1, &layer->framebuffer_vert_buf_gl_id);
-	glBindBuffer(GL_ARRAY_BUFFER, layer->framebuffer_vert_buf_gl_id);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(init_gl_verts[0]) * gl_vert_count, init_gl_verts, GL_DYNAMIC_DRAW);
-
-	glGenBuffers(1, &layer->framebuffer_elem_buf_gl_id);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, layer->framebuffer_elem_buf_gl_id);
-
-	{
-		const unsigned short elems[] = { 0, 1, 2, 2, 3, 0 };
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elems), elems, GL_STATIC_DRAW);
-	}
-
-	const int verts_stride = 4 * sizeof(float);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
-
-	// Generate the batch OpenGL objects upfront.
-	glGenVertexArrays(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT, layer->sprite_batch_vert_array_gl_ids);
-	glGenBuffers(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT, layer->sprite_batch_vert_buf_gl_ids);
-	glGenBuffers(1, layer->sprite_batch_elem_buf_gl_ids);
-}
-
-zfw_bool_t zfw_init_and_activate_render_layer_sprite_batch(zfw_render_layer_t *const layer, const int index, int slot_count)
-{
-	if (!slot_count)
-	{
-		slot_count = layer->sprite_batch_slot_count_default;
-	}
-
-	layer->sprite_batch_slot_counts[index] = slot_count;
-
-	if (!zfw_init_bitset(&layer->sprite_batch_slot_activity_bitsets[index], (int)ceilf((float)slot_count / 8) + 1))
-	{
-		return ZFW_FALSE;
-	}
-
-	glBindVertexArray(layer->sprite_batch_vert_array_gl_ids[index]);
-
-	glBindBuffer(GL_ARRAY_BUFFER, layer->sprite_batch_vert_buf_gl_ids[index]);
-
-	{
-		float *verts_buf;
-		const int verts_buf_size = 48 * slot_count * sizeof(*verts_buf);
-		verts_buf = malloc(verts_buf_size);
-
-		if (!verts_buf)
-		{
-			zfw_log_error("Failed to allocate %d bytes for render layer sprite batch vertices!", verts_buf_size);
-			return ZFW_FALSE;
-		}
-
-		memset(verts_buf, 0, verts_buf_size);
-
-		glBufferData(GL_ARRAY_BUFFER, verts_buf_size, verts_buf, GL_DYNAMIC_DRAW);
-
-		free(verts_buf);
-	}
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, layer->sprite_batch_elem_buf_gl_ids[index]);
-
-	{
-		unsigned short *elems_buf;
-		const int elems_buf_size = 6 * slot_count * sizeof(*elems_buf);
-		elems_buf = malloc(elems_buf_size);
-
-		if (!elems_buf)
-		{
-			zfw_log_error("Failed to allocate %d bytes for render layer sprite batch elements!", elems_buf_size);
-			return ZFW_FALSE;
-		}
-
-		for (int i = 0; i < slot_count; i++)
-		{
-			elems_buf[i * 6] = i * 4;
-			elems_buf[(i * 6) + 1] = (i * 4) + 1;
-			elems_buf[(i * 6) + 2] = (i * 4) + 2;
-			elems_buf[(i * 6) + 3] = (i * 4) + 2;
-			elems_buf[(i * 6) + 4] = (i * 4) + 3;
-			elems_buf[(i * 6) + 5] = i * 4;
-		}
-
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elems_buf_size, elems_buf, GL_STATIC_DRAW);
-
-		free(elems_buf);
-	}
-
-	const int verts_stride = 12 * sizeof(float);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(4 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(6 * sizeof(float)));
-	glEnableVertexAttribArray(3);
-
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(7 * sizeof(float)));
-	glEnableVertexAttribArray(4);
-
-	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(8 * sizeof(float)));
-	glEnableVertexAttribArray(5);
-
-	glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(9 * sizeof(float)));
-	glEnableVertexAttribArray(6);
-
-	glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(11 * sizeof(float)));
-	glEnableVertexAttribArray(7);
-
-	glBindVertexArray(0);
-
-	layer->sprite_batch_activity_bits |= (zfw_sprite_batch_activity_bits_t)1 << index;
-
-	return ZFW_TRUE;
-}
-
-zfw_bool_t zfw_take_slot_from_render_layer_sprite_batch(zfw_render_layer_t *const layer, const int user_tex_index, zfw_sprite_batch_slot_key_t *const key)
+zfw_bool_t zfw_take_slot_from_render_layer_sprite_batch(const int layer_index, const int user_tex_index, zfw_sprite_batch_slot_key_t *const key, zfw_sprite_batch_data_t *const batch_data)
 {
 	memset(key, -1, sizeof(*key));
 
@@ -705,7 +527,7 @@ zfw_bool_t zfw_take_slot_from_render_layer_sprite_batch(zfw_render_layer_t *cons
 	for (int i = 0; i < ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT; i++)
 	{
 		// Check if the batch is active.
-		if (!(layer->sprite_batch_activity_bits & ((zfw_sprite_batch_activity_bits_t)1 << i)))
+		if (!(batch_data->batch_activities[layer_index] & ((zfw_render_layer_sprite_batch_activity_bits_t)1 << i)))
 		{
 			if (first_inactive_batch_index == -1)
 			{
@@ -718,9 +540,9 @@ zfw_bool_t zfw_take_slot_from_render_layer_sprite_batch(zfw_render_layer_t *cons
 		// Check for a texture unit to use.
 		key->batch_tex_unit = -1;
 
-		for (int j = 0; j < ZFW_RENDER_LAYER_SPRITE_BATCH_TEX_UNIT_LIMIT; j++)
+		for (int j = 0; j < ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT; j++)
 		{
-			if (layer->sprite_batch_user_tex_indexes[i][j] == -1 || layer->sprite_batch_user_tex_indexes[i][j] == user_tex_index)
+			if (batch_data->user_tex_indexes[layer_index][i][j] == -1 || batch_data->user_tex_indexes[layer_index][i][j] == user_tex_index)
 			{
 				key->batch_tex_unit = j;
 				break;
@@ -733,48 +555,57 @@ zfw_bool_t zfw_take_slot_from_render_layer_sprite_batch(zfw_render_layer_t *cons
 		}
 
 		// Check for an available slot.
-		key->batch_slot_index = zfw_get_first_inactive_bit_index_in_bitset(&layer->sprite_batch_slot_activity_bitsets[i]);
-
-		if (key->batch_slot_index == -1)
+		for (int j = 0; j < ZFW_ARRAY_LEN(batch_data->slot_activity_bits[layer_index][i]); j++)
 		{
-			continue;
+			if (batch_data->slot_activity_bits[layer_index][i][j] == (zfw_sprite_batch_slot_activity_bits_t)(~0))
+			{
+				continue;
+			}
+
+			for (int k = 0; k < ZFW_SIZE_IN_BITS(zfw_sprite_batch_slot_activity_bits_t); k++)
+			{
+				const zfw_sprite_batch_slot_activity_bits_t activity_bitmask = (zfw_sprite_batch_slot_activity_bits_t)1 << k;
+
+				if (!(batch_data->slot_activity_bits[layer_index][i][j] & activity_bitmask))
+				{
+					// Take the batch slot.
+					key->batch_index = i;
+					key->batch_slot_index = (j * ZFW_SIZE_IN_BITS(zfw_sprite_batch_slot_activity_bits_t)) + k;
+
+					batch_data->user_tex_indexes[layer_index][i][key->batch_tex_unit] = user_tex_index;
+					batch_data->slot_activity_bits[layer_index][i][j] |= activity_bitmask;
+
+					return ZFW_TRUE;
+				}
+			}
 		}
-
-		// Take the batch slot.
-		zfw_toggle_bitset_bit(&layer->sprite_batch_slot_activity_bitsets[i], key->batch_slot_index, ZFW_TRUE);
-		layer->sprite_batch_user_tex_indexes[i][key->batch_tex_unit] = user_tex_index;
-
-		key->batch_index = i;
-
-		return ZFW_TRUE;
 	}
 
 	if (first_inactive_batch_index != -1)
 	{
 		// Initialize and activate a new sprite batch. If successful, try this all again.
-		if (zfw_init_and_activate_render_layer_sprite_batch(layer, first_inactive_batch_index, layer->sprite_batch_slot_count_default))
+		if (init_and_activate_render_layer_sprite_batch(layer_index, first_inactive_batch_index, batch_data)) // WARNING: The slot count is 0 here.
 		{
-			return zfw_take_slot_from_render_layer_sprite_batch(layer, user_tex_index, key);
+			return zfw_take_slot_from_render_layer_sprite_batch(layer_index, user_tex_index, key, batch_data);
 		}
 	}
 
 	return ZFW_FALSE;
 }
 
-void zfw_write_to_render_layer_sprite_batch_slot(zfw_render_layer_t *const layer, const zfw_sprite_batch_slot_key_t *const key, const zfw_vec_t pos, const float rot, const zfw_vec_t scale, const zfw_vec_t origin, const float depth, const float opacity, const zfw_user_tex_data_t *const user_tex_data)
+void zfw_write_to_render_layer_sprite_batch_slot(const int layer_index, const zfw_sprite_batch_slot_key_t *const slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const float opacity, const zfw_sprite_batch_data_t *const batch_data, const zfw_user_tex_data_t *const user_tex_data)
 {
-	const zfw_vec_i_t user_tex_size = user_tex_data->sizes[layer->sprite_batch_user_tex_indexes[key->batch_index][key->batch_tex_unit]];
+	const zfw_vec_2d_i_t user_tex_size = user_tex_data->sizes[batch_data->user_tex_indexes[layer_index][slot_key->batch_index][slot_key->batch_tex_unit]];
 
 	const float verts[] = {
 		(0.0f - origin.x) * scale.x,
 		(0.0f - origin.y) * scale.y,
 		pos.x,
 		pos.y,
-		(float)user_tex_size.x,
-		(float)user_tex_size.y,
+		user_tex_size.x,
+		user_tex_size.y,
 		rot,
-		depth,
-		(float)key->batch_tex_unit,
+		slot_key->batch_tex_unit,
 		0.0f,
 		0.0f,
 		opacity,
@@ -783,11 +614,10 @@ void zfw_write_to_render_layer_sprite_batch_slot(zfw_render_layer_t *const layer
 		(0.0f - origin.y) * scale.y,
 		pos.x,
 		pos.y,
-		(float)user_tex_size.x,
-		(float)user_tex_size.y,
+		user_tex_size.x,
+		user_tex_size.y,
 		rot,
-		depth,
-		(float)key->batch_tex_unit,
+		slot_key->batch_tex_unit,
 		1.0f,
 		0.0f,
 		opacity,
@@ -796,11 +626,10 @@ void zfw_write_to_render_layer_sprite_batch_slot(zfw_render_layer_t *const layer
 		(1.0f - origin.y) * scale.y,
 		pos.x,
 		pos.y,
-		(float)user_tex_size.x,
-		(float)user_tex_size.y,
+		user_tex_size.x,
+		user_tex_size.y,
 		rot,
-		depth,
-		(float)key->batch_tex_unit,
+		slot_key->batch_tex_unit,
 		1.0f,
 		1.0f,
 		opacity,
@@ -809,40 +638,41 @@ void zfw_write_to_render_layer_sprite_batch_slot(zfw_render_layer_t *const layer
 		(1.0f - origin.y) * scale.y,
 		pos.x,
 		pos.y,
-		(float)user_tex_size.x,
-		(float)user_tex_size.y,
+		user_tex_size.x,
+		user_tex_size.y,
 		rot,
-		depth,
-		(float)key->batch_tex_unit,
+		slot_key->batch_tex_unit,
 		0.0f,
 		1.0f,
 		opacity
 	};
 
-	glBindVertexArray(layer->sprite_batch_vert_array_gl_ids[key->batch_index]);
-	glBindBuffer(GL_ARRAY_BUFFER, layer->sprite_batch_vert_buf_gl_ids[key->batch_index]); // NOTE: This might be redundant.
-	glBufferSubData(GL_ARRAY_BUFFER, key->batch_slot_index * sizeof(verts), sizeof(verts), verts);
+	glBindVertexArray(batch_data->vert_array_gl_ids[layer_index][slot_key->batch_index]);
+	glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[layer_index][slot_key->batch_index]); // NOTE: This might be redundant.
+	glBufferSubData(GL_ARRAY_BUFFER, slot_key->batch_slot_index * sizeof(verts), sizeof(verts), verts);
+}
+
+zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)
+{
+	return zfw_get_vec_2d_scaled(zfw_create_vec_2d(pos.x - view_state->pos.x, pos.y - view_state->pos.y), view_state->scale);
+}
+
+zfw_vec_2d_t zfw_get_screen_to_view_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)
+{
+	return zfw_get_vec_2d_sum(view_state->pos, zfw_get_vec_2d_scaled(pos, 1.0f / view_state->scale));
 }
 
 static void clean_game(zfw_game_cleanup_info_t *const cleanup_info)
 {
 	zfw_log("Cleaning up...");
 
-	// Clean render layers.
-	if (cleanup_info->root_view_render_layer)
-	{
-		clean_render_layer_and_children(cleanup_info->root_view_render_layer);
-	}
-
-	if (cleanup_info->root_noview_render_layer)
-	{
-		clean_render_layer_and_children(cleanup_info->root_noview_render_layer);
-	}
+	// Clean sprite batch data.
+	clean_sprite_batch_data(cleanup_info->screen_sprite_batch_data);
+	clean_sprite_batch_data(cleanup_info->view_sprite_batch_data);
 
 	// Clean built-in shader program data.
 	if (cleanup_info->builtin_shader_prog_data)
 	{
-		glDeleteProgram(cleanup_info->builtin_shader_prog_data->default_render_layer_prog_gl_id);
 		glDeleteProgram(cleanup_info->builtin_shader_prog_data->textured_rect_prog_gl_id);
 	}
 
@@ -873,7 +703,7 @@ static void clean_game(zfw_game_cleanup_info_t *const cleanup_info)
 static void glfw_window_size_callback(GLFWwindow *glfw_window, int width, int height)
 {
 	zfw_glfw_window_user_data_t *const user_data = glfwGetWindowUserPointer(glfw_window);
-	user_data->window_state.size = zfw_create_vec_i(width, height);
+	user_data->window_state.size = zfw_create_vec_2d_i(width, height);
 
 	glViewport(0, 0, width, height);
 }
@@ -881,7 +711,7 @@ static void glfw_window_size_callback(GLFWwindow *glfw_window, int width, int he
 static void glfw_window_pos_callback(GLFWwindow *glfw_window, int x, int y)
 {
 	zfw_glfw_window_user_data_t *const user_data = glfwGetWindowUserPointer(glfw_window);
-	user_data->window_state.pos = zfw_create_vec_i(x, y);
+	user_data->window_state.pos = zfw_create_vec_2d_i(x, y);
 }
 
 static void glfw_key_callback(GLFWwindow *glfw_window, int glfw_key_index, int glfw_scancode, int glfw_action, int glfw_mods)
@@ -1028,75 +858,121 @@ static void reset_gamepad_state(zfw_input_state_t *const input_state)
 	zfw_log("Gamepad state reset.");
 }
 
-static void draw_render_layer_and_children(const zfw_render_layer_t *const layer, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data)
+static void init_sprite_batch_data(zfw_sprite_batch_data_t *const batch_data)
 {
-	// Draw child layers first.
-	for (int i = 0; i < layer->child_count; i++)
-	{
-		draw_render_layer_and_children(layer->children[i], builtin_shader_prog_data);
-	}
+	memset(batch_data, 0, sizeof(*batch_data));
 
-	// Draw this layer to the parent framebuffer (the default framebuffer if this layer has no parent).
-	glBindFramebuffer(GL_FRAMEBUFFER, layer->parent ? layer->parent->framebuffer_gl_id : 0);
+	glGenVertexArrays(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->vert_array_gl_ids);
+	glGenBuffers(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->vert_buf_gl_ids);
+	glGenBuffers(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->elem_buf_gl_ids);
 
-	glUseProgram(layer->shader_prog_gl_id);
-
-	zfw_matrix_4x4_t view;
-	zfw_init_identity_matrix_4x4(&view);
-	glUniformMatrix4fv(glGetUniformLocation(layer->shader_prog_gl_id, "u_view"), 1, GL_FALSE, (GLfloat *)&view);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, layer->framebuffer_tex_gl_id);
-
-	glBindVertexArray(layer->framebuffer_vert_array_gl_id);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+	memset(batch_data->user_tex_indexes, -1, sizeof(batch_data->user_tex_indexes));
 }
 
-static void resize_render_layer_and_children(zfw_render_layer_t *const layer, const zfw_vec_i_t window_size)
+static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_index, const int batch_index, zfw_sprite_batch_data_t *const batch_data)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, layer->framebuffer_gl_id);
+	glBindVertexArray(batch_data->vert_array_gl_ids[layer_index][batch_index]);
 
-	// Delete the current framebuffer texture GLID and create a new one with the window size.
-	glDeleteTextures(1, &layer->framebuffer_tex_gl_id);
+	glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[layer_index][batch_index]);
 
-	glGenTextures(1, &layer->framebuffer_tex_gl_id);
-	glBindTexture(GL_TEXTURE_2D, layer->framebuffer_tex_gl_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_size.x, window_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, layer->framebuffer_tex_gl_id, 0);
-
-	// Delete the current depth renderbuffer and create a new one with the window size.
-	glDeleteRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
-
-	glGenRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
-	glBindRenderbuffer(GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_size.x, window_size.y);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, layer->frame_buffer_depth_renderbuffer_gl_id);
-
-	// Resize children.
-	for (int i = 0; i < layer->child_count; i++)
 	{
-		resize_render_layer_and_children(layer->children[i], window_size);
-	}
-}
+		float *verts_buf;
+		const int verts_buf_size = sizeof(*verts_buf) * 44 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
+		verts_buf = malloc(verts_buf_size);
 
-static void draw_sprite_batches_of_render_layer_and_children(const zfw_render_layer_t *const layer, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data, const zfw_user_tex_data_t *const user_tex_data)
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, layer->framebuffer_gl_id);
-
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	for (int j = 0; j < ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT; j++)
-	{
-		if (layer->sprite_batch_activity_bits & ((zfw_sprite_batch_activity_bits_t)1 << j))
+		if (!verts_buf)
 		{
-			int tex_units[ZFW_RENDER_LAYER_SPRITE_BATCH_TEX_UNIT_LIMIT] = { 0 };
+			zfw_log_error("Failed to allocate %d bytes for render layer sprite batch vertices!", verts_buf_size);
+			return ZFW_FALSE;
+		}
 
-			for (int k = 0; k < ZFW_RENDER_LAYER_SPRITE_BATCH_TEX_UNIT_LIMIT; k++)
+		memset(verts_buf, 0, verts_buf_size);
+
+		glBufferData(GL_ARRAY_BUFFER, verts_buf_size, verts_buf, GL_DYNAMIC_DRAW);
+
+		free(verts_buf);
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batch_data->elem_buf_gl_ids[layer_index][batch_index]);
+
+	{
+		unsigned short *indices_buf;
+		const int indices_buf_size = sizeof(*indices_buf) * 6 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
+		indices_buf = malloc(indices_buf_size);
+
+		if (!indices_buf)
+		{
+			zfw_log_error("Failed to allocate %d bytes for render layer sprite batch elements!", indices_buf_size);
+			return ZFW_FALSE;
+		}
+
+		for (int i = 0; i < ZFW_SPRITE_BATCH_SLOT_LIMIT; i++)
+		{
+			indices_buf[(i * 6) + 0] = (i * 4) + 0;
+			indices_buf[(i * 6) + 1] = (i * 4) + 1;
+			indices_buf[(i * 6) + 2] = (i * 4) + 2;
+			indices_buf[(i * 6) + 3] = (i * 4) + 2;
+			indices_buf[(i * 6) + 4] = (i * 4) + 3;
+			indices_buf[(i * 6) + 5] = (i * 4) + 0;
+		}
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_buf_size, indices_buf, GL_STATIC_DRAW);
+
+		free(indices_buf);
+	}
+
+	const int verts_stride = sizeof(float) * 11;
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 0));
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 2));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 4));
+	glEnableVertexAttribArray(2);
+
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 6));
+	glEnableVertexAttribArray(3);
+
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 7));
+	glEnableVertexAttribArray(4);
+
+	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 8));
+	glEnableVertexAttribArray(5);
+
+	glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 10));
+	glEnableVertexAttribArray(6);
+
+	glBindVertexArray(0);
+
+	batch_data->batch_activities[layer_index] |= (zfw_render_layer_sprite_batch_activity_bits_t)1 << batch_index;
+
+	return ZFW_TRUE;
+}
+
+void draw_sprite_batches(zfw_sprite_batch_data_t *const batch_data, const zfw_user_tex_data_t *const user_tex_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data)
+{
+	for (int i = 0; i < ZFW_RENDER_LAYER_LIMIT; i++)
+	{
+		if (!batch_data->batch_activities[i])
+		{
+			// All the batches of this layer are inactive, so continue to the next one.
+			continue;
+		}
+
+		for (int j = 0; j < ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT; j++)
+		{
+			if (!(batch_data->batch_activities[i] & ((zfw_render_layer_sprite_batch_activity_bits_t)1 << j)))
 			{
-				const int user_tex_index = layer->sprite_batch_user_tex_indexes[j][k];
+				continue;
+			}
+
+			int tex_units[ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT] = { 0 };
+
+			for (int k = 0; k < ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT; k++)
+			{
+				const int user_tex_index = batch_data->user_tex_indexes[i][j][k];
 
 				if (user_tex_index != -1)
 				{
@@ -1109,41 +985,15 @@ static void draw_sprite_batches_of_render_layer_and_children(const zfw_render_la
 
 			glUniform1iv(glGetUniformLocation(builtin_shader_prog_data->textured_rect_prog_gl_id, "u_textures"), ZFW_ARRAY_LEN(tex_units), tex_units);
 
-			glBindVertexArray(layer->sprite_batch_vert_array_gl_ids[j]);
-			glDrawElements(GL_TRIANGLES, 6 * layer->sprite_batch_slot_counts[j], GL_UNSIGNED_SHORT, NULL);
+			glBindVertexArray(batch_data->vert_array_gl_ids[i][j]);
+			glDrawElements(GL_TRIANGLES, 6 * ZFW_SPRITE_BATCH_SLOT_LIMIT, GL_UNSIGNED_SHORT, NULL);
 		}
-	}
-
-	for (int i = 0; i < layer->child_count; i++)
-	{
-		draw_sprite_batches_of_render_layer_and_children(layer->children[i], builtin_shader_prog_data, user_tex_data);
 	}
 }
 
-static void clean_render_layer_and_children(zfw_render_layer_t *const layer)
+static void clean_sprite_batch_data(zfw_sprite_batch_data_t *const batch_data)
 {
-	for (int i = 0; i < ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT; i++)
-	{
-		if (layer->sprite_batch_activity_bits & ((zfw_sprite_batch_activity_bits_t)1 << i))
-		{
-			zfw_clean_bitset(&layer->sprite_batch_slot_activity_bitsets[i]);
-		}
-	}
-
-	glDeleteBuffers(ZFW_ARRAY_LEN(layer->sprite_batch_elem_buf_gl_ids), layer->sprite_batch_elem_buf_gl_ids);
-	glDeleteBuffers(ZFW_ARRAY_LEN(layer->sprite_batch_vert_buf_gl_ids), layer->sprite_batch_vert_buf_gl_ids);
-	glDeleteVertexArrays(ZFW_ARRAY_LEN(layer->sprite_batch_vert_array_gl_ids), layer->sprite_batch_vert_array_gl_ids);
-
-	glDeleteBuffers(1, &layer->framebuffer_elem_buf_gl_id);
-	glDeleteBuffers(1, &layer->framebuffer_vert_buf_gl_id);
-	glDeleteVertexArrays(1, &layer->framebuffer_vert_array_gl_id);
-
-	glDeleteRenderbuffers(1, &layer->frame_buffer_depth_renderbuffer_gl_id);
-	glDeleteTextures(1, &layer->framebuffer_tex_gl_id);
-	glDeleteFramebuffers(1, &layer->framebuffer_gl_id);
-
-	for (int i = 0; i < layer->child_count; i++)
-	{
-		clean_render_layer_and_children(layer->children[i]);
-	}
+	glDeleteBuffers(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->elem_buf_gl_ids);
+	glDeleteBuffers(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->vert_buf_gl_ids);
+	glDeleteVertexArrays(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->vert_array_gl_ids);
 }
