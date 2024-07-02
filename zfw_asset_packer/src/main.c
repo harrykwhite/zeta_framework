@@ -250,7 +250,7 @@ static zfw_bool_t pack_shader(const char *const shader_rfp, FILE *const assets_f
 	return ZFW_TRUE;
 }
 
-void tidy_up(const zfw_bool_t packing_successful, char *const packing_instrs_json_file_chars, FILE *const assets_file_fs, cJSON *const c_json, const char *const assets_file_rel_path)
+static void tidy_up(const zfw_bool_t packing_successful, char *const packing_instrs_json_file_chars, FILE *const assets_file_fs, cJSON *const c_json, const char *const assets_file_rel_path)
 {
 	cJSON_Delete(c_json);
 
