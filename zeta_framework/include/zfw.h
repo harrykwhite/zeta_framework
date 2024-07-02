@@ -122,6 +122,12 @@ typedef struct
 typedef struct
 {
 	zfw_vec_2d_i_t window_size;
+
+	const zfw_user_asset_data_t *user_asset_data;
+
+	zfw_sprite_batch_data_t *view_sprite_batch_data;
+	zfw_sprite_batch_data_t *screen_sprite_batch_data;
+	zfw_view_state_t *view_state;
 } zfw_user_window_resize_func_data_t;
 
 typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_init_func_data_t *);

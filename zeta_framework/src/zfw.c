@@ -300,6 +300,10 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 		{
 			zfw_user_window_resize_func_data_t window_resize_data;
 			window_resize_data.window_size = glfw_window_user_data.window_state.size;
+			window_resize_data.user_asset_data = &user_asset_data;
+			window_resize_data.view_sprite_batch_data = &view_sprite_batch_data;
+			window_resize_data.screen_sprite_batch_data = &screen_sprite_batch_data;
+			window_resize_data.view_state = &view_state;
 
 			run_info->on_window_resize_func(run_info->user_ptr, &window_resize_data);
 		}
@@ -400,6 +404,10 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 				{
 					zfw_user_window_resize_func_data_t window_resize_data;
 					window_resize_data.window_size = glfw_window_user_data.window_state.size;
+					window_resize_data.user_asset_data = &user_asset_data;
+					window_resize_data.view_sprite_batch_data = &view_sprite_batch_data;
+					window_resize_data.screen_sprite_batch_data = &screen_sprite_batch_data;
+					window_resize_data.view_state = &view_state;
 
 					run_info->on_window_resize_func(run_info->user_ptr, &window_resize_data);
 				}
