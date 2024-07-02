@@ -1,10 +1,7 @@
 #ifndef __ZFW_UTILS_H__
 #define __ZFW_UTILS_H__
 
-typedef struct
-{
-	unsigned char r, g, b, a;
-} zfw_color_t;
+#include <stdlib.h>
 
 typedef struct
 {
@@ -12,11 +9,8 @@ typedef struct
 	int byte_count;
 } zfw_bitset_t;
 
-inline zfw_color_t zfw_create_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
-{
-	const zfw_color_t color = { r, g, b, a };
-	return color;
-}
+// DESCRIPTION: Generate a random float value within the range [0, 1).
+float zfw_gen_rand();
 
 int zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
 void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int index, const int active);

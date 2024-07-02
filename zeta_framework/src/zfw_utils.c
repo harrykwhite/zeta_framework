@@ -4,6 +4,11 @@
 #include <string.h>
 #include <zfw_common.h>
 
+float zfw_gen_rand()
+{
+	return (float)rand() / RAND_MAX;
+}
+
 int zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count)
 {
 	bitset->bytes = malloc(byte_count);

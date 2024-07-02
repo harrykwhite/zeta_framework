@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 // DESCRIPTION: Pointers to data to be cleaned up when the game ends.
 typedef struct
@@ -56,6 +57,9 @@ zfw_bool_t zfw_run_game(const zfw_game_run_info_t *const run_info)
 	}
 
 	zfw_log("Data type sizes meet requirements.");
+
+	// Initialize the random number generator.
+	srand(time(NULL));
 
 	// Initialize GLFW.
 	if (!glfwInit())
