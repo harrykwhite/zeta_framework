@@ -60,9 +60,11 @@ zfw_vec_2d_t zfw_get_vec_2d_sum(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec
 zfw_vec_2d_t zfw_get_vec_2d_scaled(const zfw_vec_2d_t vec, const float scalar);
 float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
-int zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect);
 
 void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height);
+zfw_vec_2d_i_t zfw_get_rect_pos(zfw_rect_t *const rect);
+zfw_vec_2d_i_t zfw_get_rect_size(zfw_rect_t *const rect);
+int zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect);
 int zfw_do_rects_collide(const zfw_rect_t *const rect_a, const zfw_rect_t *const rect_b);
 
 void zfw_init_identity_matrix_4x4(zfw_matrix_4x4_t *const mat);

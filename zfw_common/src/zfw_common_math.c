@@ -40,17 +40,27 @@ float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
 	return atan2f(vec_b.y - vec_a.y, vec_b.x - vec_a.x);
 }
 
-int zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect)
-{
-	return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
-}
-
 void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height)
 {
 	rect->x = x;
 	rect->y = y;
 	rect->width = width;
 	rect->height = height;
+}
+
+zfw_vec_2d_i_t zfw_get_rect_pos(zfw_rect_t *const rect)
+{
+	return zfw_create_vec_2d_i(rect->x, rect->y);
+}
+
+zfw_vec_2d_i_t zfw_get_rect_size(zfw_rect_t *const rect)
+{
+	return zfw_create_vec_2d_i(rect->width, rect->height);
+}
+
+int zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect)
+{
+	return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
 }
 
 int zfw_do_rects_collide(const zfw_rect_t *const rect_a, const zfw_rect_t *const rect_b)
