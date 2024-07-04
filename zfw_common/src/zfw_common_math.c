@@ -1,6 +1,7 @@
-#include "zfw_common_math.h"
+#include "zfw_common.h"
 
 #include <string.h>
+#include <math.h>
 
 zfw_vec_2d_t zfw_create_vec_2d(const float x, const float y)
 {
@@ -44,6 +45,14 @@ int zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect)
 	return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
 }
 
+void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height)
+{
+	rect->x = x;
+	rect->y = y;
+	rect->width = width;
+	rect->height = height;
+}
+
 int zfw_do_rects_collide(const zfw_rect_t *const rect_a, const zfw_rect_t *const rect_b)
 {
 	return rect_a->x + rect_a->width >= rect_b->x && rect_a->y + rect_a->height >= rect_b->y && rect_a->x < rect_b->x + rect_b->width && rect_a->y < rect_b->y + rect_b->height;
@@ -70,12 +79,4 @@ void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, co
 	mat->elems[3][1] = -(top + bottom) / (top - bottom);
 	mat->elems[3][2] = -(far + near) / (far - near);
 	mat->elems[3][3] = 1.0f;
-}
-
-void scale_matrix_4x4(zfw_matrix_4x4_t *const mat, const float scale)
-{
-	for (int i = 0; i < 3; i++)
-	{
-		mat->elems[i][i] *= scale;
-	}
 }
