@@ -2,6 +2,12 @@
 #include <string.h>
 #include "zfw.h"
 
+const zfw_color_t zfw_g_builtin_color_white = { 1.0f, 1.0f, 1.0f, 1.0f };
+const zfw_color_t zfw_g_builtin_color_black = { 0.0f, 0.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_g_builtin_color_red = { 1.0f, 0.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_g_builtin_color_green = { 0.0f, 1.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_g_builtin_color_blue = { 0.0f, 0.0f, 1.0f, 1.0f };
+
 zfw_bool_t zfw_init_mem_arena(zfw_mem_arena_t *const mem_arena, const int size)
 {
 	mem_arena->buf = malloc(size);
@@ -172,6 +178,14 @@ int zfw_is_bitset_clear(const zfw_bitset_t *const bitset)
 	}
 
 	return ZFW_TRUE;
+}
+
+void zfw_init_color(zfw_color_t *const color, const float r, const float g, const float b, const float a)
+{
+	color->r = r;
+	color->g = g;
+	color->b = b;
+	color->a = a;
 }
 
 float zfw_gen_rand_num()

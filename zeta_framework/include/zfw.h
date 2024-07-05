@@ -17,10 +17,10 @@
     "layout (location = 3) in float a_rot;\n" \
     "layout (location = 4) in float a_tex_index;\n" \
     "layout (location = 5) in vec2 a_tex_coord;\n" \
-    "layout (location = 6) in float a_opacity;\n" \
+    "layout (location = 6) in vec4 a_blend;\n" \
     "out flat int v_tex_index;\n" \
     "out vec2 v_tex_coord;\n" \
-    "out flat float v_opacity;\n" \
+    "out vec4 v_blend;\n" \
     "uniform mat4 u_view;\n" \
     "uniform mat4 u_proj;\n" \
     "void main()\n" \
@@ -36,20 +36,20 @@
     "    gl_Position = u_proj * u_view * model * vec4(a_vert, 0.0f, 1.0f);\n" \
     "    v_tex_index = int(a_tex_index);\n" \
     "    v_tex_coord = a_tex_coord;\n" \
-    "    v_opacity = a_opacity;\n" \
+    "    v_blend = a_blend;\n" \
     "}\n"
 
 #define ZFW_BUILTIN_TEXTURED_RECT_FRAG_SHADER_SRC \
     "#version 430 core\n" \
     "in flat int v_tex_index;\n" \
     "in vec2 v_tex_coord;\n" \
-    "in flat float v_opacity;\n" \
+    "in vec4 v_blend;\n" \
     "out vec4 o_frag_color;\n" \
     "uniform sampler2D u_textures[32];\n" \
     "void main()\n" \
     "{\n" \
     "    vec4 tex_color = texture(u_textures[v_tex_index], v_tex_coord);\n" \
-    "    o_frag_color = vec4(tex_color.rgb, tex_color.a * v_opacity);\n" \
+    "    o_frag_color = tex_color * v_blend;\n" \
     "}\n"
 
 ////// Rendering Limits //////
@@ -226,6 +226,11 @@ typedef struct
     int byte_count;
 } zfw_bitset_t;
 
+typedef struct
+{
+    float r, g, b, a;
+} zfw_color_t;
+
 ////// Window and Input Structs //////
 typedef struct
 {
@@ -371,6 +376,13 @@ typedef struct
     void *user_ptr;
 } zfw_user_game_run_info_t;
 
+////// Built-in Colors //////
+extern const zfw_color_t zfw_g_builtin_color_white;
+extern const zfw_color_t zfw_g_builtin_color_black;
+extern const zfw_color_t zfw_g_builtin_color_red;
+extern const zfw_color_t zfw_g_builtin_color_green;
+extern const zfw_color_t zfw_g_builtin_color_blue;
+
 ////// Utility Functions //////
 zfw_bool_t zfw_init_mem_arena(zfw_mem_arena_t *const mem_arena, const int size);
 void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size);
@@ -386,6 +398,8 @@ int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset);
 int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_index, const int end_index);
 zfw_bool_t zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset);
 zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset);
+
+void zfw_init_color(zfw_color_t *const color, const float r, const float g, const float b, const float a);
 
 // Generate a random float number within the range [0, 1).
 float zfw_gen_rand_num(void);
@@ -413,7 +427,7 @@ void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert
 
 ////// Rendering Functions //////
 zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas, zfw_mem_arena_t *const mem_arena);
-zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const float opacity, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
+zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 

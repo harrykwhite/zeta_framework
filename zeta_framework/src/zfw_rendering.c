@@ -10,7 +10,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
 
     {
         float *verts;
-        const int verts_size = sizeof(*verts) * 44 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
+        const int verts_size = sizeof(*verts) * 56 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
         verts = zfw_mem_arena_alloc(mem_arena, verts_size);
 
         if (!verts)
@@ -54,7 +54,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
         zfw_rewind_mem_arena(mem_arena);
     }
 
-    const int verts_stride = sizeof(float) * 11;
+    const int verts_stride = sizeof(float) * 14;
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 0));
     glEnableVertexAttribArray(0);
@@ -74,7 +74,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
     glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 8));
     glEnableVertexAttribArray(5);
 
-    glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 10));
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 10));
     glEnableVertexAttribArray(6);
 
     glBindVertexArray(0);
@@ -182,7 +182,7 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
     return 0;
 }
 
-zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const float opacity, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data)
+zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data)
 {
     if (!(slot_key & 1))
     {
@@ -209,7 +209,10 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         slot_key_elems.tex_unit,
         (float)src_rect->x / user_tex_size.x,
         (float)src_rect->y / user_tex_size.y,
-        opacity,
+        blend->r,
+        blend->g,
+        blend->b,
+        blend->a,
 
         (1.0f - origin.x) * scale.x,
         (0.0f - origin.y) * scale.y,
@@ -221,7 +224,10 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         slot_key_elems.tex_unit,
         (float)(src_rect->x + src_rect->width) / user_tex_size.x,
         (float)src_rect->y / user_tex_size.y,
-        opacity,
+        blend->r,
+        blend->g,
+        blend->b,
+        blend->a,
 
         (1.0f - origin.x) * scale.x,
         (1.0f - origin.y) * scale.y,
@@ -233,7 +239,10 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         slot_key_elems.tex_unit,
         (float)(src_rect->x + src_rect->width) / user_tex_size.x,
         (float)(src_rect->y + src_rect->height) / user_tex_size.y,
-        opacity,
+        blend->r,
+        blend->g,
+        blend->b,
+        blend->a,
 
         (0.0f - origin.x) * scale.x,
         (1.0f - origin.y) * scale.y,
@@ -245,7 +254,10 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         slot_key_elems.tex_unit,
         (float)src_rect->x / user_tex_size.x,
         (float)(src_rect->y + src_rect->height) / user_tex_size.y,
-        opacity
+        blend->r,
+        blend->g,
+        blend->b,
+        blend->a
     };
 
     glBindVertexArray(batch_data->vert_array_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
