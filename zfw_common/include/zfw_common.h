@@ -58,6 +58,7 @@ zfw_vec_2d_t zfw_create_vec_2d(const float x, const float y);
 zfw_vec_2d_i_t zfw_create_vec_2d_i(const int x, const int y);
 zfw_vec_2d_t zfw_get_vec_2d_sum(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 zfw_vec_2d_t zfw_get_vec_2d_scaled(const zfw_vec_2d_t vec, const float scalar);
+zfw_vec_2d_t zfw_get_vec_2d_cross_prod(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t vec);
 float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);

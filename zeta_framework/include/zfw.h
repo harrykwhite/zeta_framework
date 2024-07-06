@@ -381,8 +381,11 @@ extern const zfw_color_t zfw_g_builtin_color_black;
 extern const zfw_color_t zfw_g_builtin_color_red;
 extern const zfw_color_t zfw_g_builtin_color_green;
 extern const zfw_color_t zfw_g_builtin_color_blue;
+extern const zfw_color_t zfw_g_builtin_color_yellow;
 
 ////// Utility Functions //////
+float zfw_get_clamped_num(const float num, const float min, const float max);
+
 zfw_bool_t zfw_init_mem_arena(zfw_mem_arena_t *const mem_arena, const int size);
 void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size);
 void zfw_reset_mem_arena(zfw_mem_arena_t *const mem_arena);

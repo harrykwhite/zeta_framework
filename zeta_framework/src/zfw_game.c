@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "zfw.h"
 
+////// Globals //////
 zfw_mem_arena_t zfw_g_main_mem_arena;
 zfw_mem_arena_t zfw_g_tick_mem_arena;
 

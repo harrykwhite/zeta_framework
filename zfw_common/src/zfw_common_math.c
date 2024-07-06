@@ -25,6 +25,11 @@ zfw_vec_2d_t zfw_get_vec_2d_scaled(const zfw_vec_2d_t vec, const float scalar)
 	return zfw_create_vec_2d(vec.x * scalar, vec.y * scalar);
 }
 
+zfw_vec_2d_t zfw_get_vec_2d_cross_prod(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
+{
+	return zfw_create_vec_2d(vec_a.x * vec_b.x, vec_a.y * vec_b.y);
+}
+
 zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t vec)
 {
 	const float vec_mag = sqrt((vec.x * vec.x) + (vec.y * vec.y));
