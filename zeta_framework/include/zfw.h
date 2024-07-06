@@ -401,8 +401,10 @@ zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset);
 
 void zfw_init_color(zfw_color_t *const color, const float r, const float g, const float b, const float a);
 
-// Generate a random float number within the range [0, 1).
-float zfw_gen_rand_num(void);
+// Generate a random float number between 0 and 1 inclusive.
+float zfw_gen_rand_num();
+
+float zfw_gen_rand_num_in_range(const float min, const float max);
 
 ////// Game Functions //////
 zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info);

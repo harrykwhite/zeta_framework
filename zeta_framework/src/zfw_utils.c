@@ -192,3 +192,8 @@ float zfw_gen_rand_num()
 {
 	return (float)rand() / RAND_MAX;
 }
+
+float zfw_gen_rand_num_in_range(const float min, const float max)
+{
+	return min + ((max - min) * zfw_gen_rand_num());
+}
