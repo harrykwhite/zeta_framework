@@ -17,14 +17,18 @@ zfw_vec_2d_i_t zfw_create_vec_2d_i(const int x, const int y)
 
 zfw_vec_2d_t zfw_get_vec_2d_sum(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
 {
-	const zfw_vec_2d_t vec_sum = { vec_a.x + vec_b.x, vec_a.y + vec_b.y };
-	return vec_sum;
+	return zfw_create_vec_2d(vec_a.x + vec_b.x, vec_a.y + vec_b.y);
 }
 
 zfw_vec_2d_t zfw_get_vec_2d_scaled(const zfw_vec_2d_t vec, const float scalar)
 {
-	const zfw_vec_2d_t vec_scaled = { vec.x * scalar, vec.y * scalar };
-	return vec_scaled;
+	return zfw_create_vec_2d(vec.x * scalar, vec.y * scalar);
+}
+
+zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t vec)
+{
+	const float vec_mag = sqrt((vec.x * vec.x) + (vec.y * vec.y));
+	return zfw_create_vec_2d(vec.x / vec_mag, vec.y / vec_mag);
 }
 
 float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
@@ -61,9 +65,19 @@ zfw_vec_2d_i_t zfw_get_rect_pos(zfw_rect_t *const rect)
 	return zfw_create_vec_2d_i(rect->x, rect->y);
 }
 
+zfw_vec_2d_t zfw_get_rect_f_pos(zfw_rect_f_t *const rect_f)
+{
+	return zfw_create_vec_2d(rect_f->x, rect_f->y);
+}
+
 zfw_vec_2d_i_t zfw_get_rect_size(zfw_rect_t *const rect)
 {
 	return zfw_create_vec_2d_i(rect->width, rect->height);
+}
+
+zfw_vec_2d_t zfw_get_rect_f_size(zfw_rect_f_t *const rect_f)
+{
+	return zfw_create_vec_2d(rect_f->width, rect_f->height);
 }
 
 zfw_bool_t zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect)
