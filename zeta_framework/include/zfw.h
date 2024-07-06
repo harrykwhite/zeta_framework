@@ -248,6 +248,7 @@ typedef struct
     zfw_gamepad_buttons_down_bits_t gamepad_buttons_down_bits;
 
     zfw_vec_2d_t mouse_pos;
+    int mouse_scroll;
 
     int gamepad_glfw_joystick_index;
     float gamepad_axis_values[ZFW_GAMEPAD_AXIS_CODE_COUNT];

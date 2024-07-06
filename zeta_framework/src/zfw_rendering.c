@@ -151,6 +151,11 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
         const int slot_activity_bitset_begin_index = (ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * layer_index) + (ZFW_SPRITE_BATCH_SLOT_LIMIT * i);
         const int slot_index = zfw_get_first_inactive_bitset_bit_index_in_range(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_index, slot_activity_bitset_begin_index + ZFW_SPRITE_BATCH_SLOT_LIMIT) - slot_activity_bitset_begin_index;
 
+        if (slot_index == -1)
+        {
+            // TODO: Resize the OpenGL batch data.
+        }
+
         if (slot_index != -1)
         {
             // Take the slot and return a key.

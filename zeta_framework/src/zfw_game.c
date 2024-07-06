@@ -153,6 +153,12 @@ static void glfw_mouse_button_callback(GLFWwindow *glfw_window, int glfw_button_
 	}
 }
 
+static void glfw_mouse_scroll_callback(GLFWwindow *glfw_window, double x_offs, double y_offs)
+{
+	glfw_window_callback_data_t *const callback_data = glfwGetWindowUserPointer(glfw_window);
+	callback_data->input_state->mouse_scroll = (int)y_offs;
+}
+
 static void glfw_mouse_pos_callback(GLFWwindow *glfw_window, double mouse_pos_x, double mouse_pos_y)
 {
 	glfw_window_callback_data_t *const callback_data = glfwGetWindowUserPointer(glfw_window);
@@ -486,6 +492,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
 	glfwSetKeyCallback(glfw_window, glfw_key_callback);
 	glfwSetMouseButtonCallback(glfw_window, glfw_mouse_button_callback);
+	glfwSetScrollCallback(glfw_window, glfw_mouse_scroll_callback);
 	glfwSetCursorPosCallback(glfw_window, glfw_mouse_pos_callback);
 	glfwSetJoystickCallback(glfw_joystick_callback);
 
@@ -563,7 +570,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 	glfwShowWindow(glfw_window);
 	//
 
-	zfw_input_state_t tick_input_state = { 0 }; // This is to be a copy of the input state at the point of the last tick.
+	zfw_input_state_t last_tick_input_state = { 0 }; // This is to be a copy of the input state at the point of the last tick.
 	zfw_window_state_t window_prefullscreen_state; // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
 
 	// Perform the restart loop.
@@ -619,7 +626,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
 				user_run_info->on_window_resize_func(user_run_info->user_ptr, &window_resize_data);
 			}
-			//
 
 			// Refresh the gamepad state.
 			if (input_state.gamepad_glfw_joystick_index != -1)
@@ -663,7 +669,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 					tick_data.window_size = window_state.size;
 					tick_data.window_fullscreen = &user_window_fullscreen;
 					tick_data.input_state = &input_state;
-					tick_data.input_state_last = &tick_input_state;
+					tick_data.input_state_last = &last_tick_input_state;
 					tick_data.user_asset_data = &user_asset_data;
 					tick_data.sprite_batch_datas = sprite_batch_datas;
 					tick_data.view_state = &view_state;
@@ -678,7 +684,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 				// Update the tick input state for next time.
 				if (i == tick_count - 1)
 				{
-					tick_input_state = input_state;
+					last_tick_input_state = input_state;
 				}
 			}
 
@@ -723,9 +729,11 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 				}
 			}
 
-			// Rendering
-			if (tick_count > 0) // (There is no need to update the display if no game update has actually occurred.)
+			if (tick_count > 0)
 			{
+				input_state.mouse_scroll = 0;
+
+				// Rendering
 				glClearColor(0.2f, 0.075f, 0.15f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT);
 
