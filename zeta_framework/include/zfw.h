@@ -52,6 +52,8 @@
     "    o_frag_color = tex_color * v_blend;\n" \
     "}\n"
 
+#define ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT 14
+
 ////// Rendering Limits //////
 
 // These must all be powers of 2!
@@ -388,11 +390,11 @@ void zfw_rewind_mem_arena(zfw_mem_arena_t *const mem_arena);
 void zfw_clean_mem_arena(zfw_mem_arena_t *const mem_arena);
 
 zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
-void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int index, const int active);
+void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, const int bit_active);
 void zfw_clear_bitset(zfw_bitset_t *const bitset);
 void zfw_clean_bitset(zfw_bitset_t *const bitset);
 int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset);
-int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_index, const int end_index);
+int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_index, const int end_bit_index);
 zfw_bool_t zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset);
 zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset);
 
@@ -427,6 +429,7 @@ void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert
 ////// Rendering Functions //////
 zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas);
 zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
+zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 

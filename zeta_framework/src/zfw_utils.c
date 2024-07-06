@@ -71,12 +71,12 @@ zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count)
 	return ZFW_TRUE;
 }
 
-void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int index, const int active)
+void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, const int bit_active)
 {
-	unsigned char bitmask = ((unsigned char)1 << (index % 8));
-	const int byte_ind = index / 8;
+	unsigned char bitmask = ((unsigned char)1 << (bit_index % 8));
+	const int byte_ind = bit_index / 8;
 
-	if (active)
+	if (bit_active)
 	{
 		bitset->bytes[byte_ind] |= bitmask;
 	}
@@ -121,10 +121,10 @@ int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset)
 	return -1;
 }
 
-int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_index, const int end_index)
+int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_index, const int end_bit_index)
 {
-	const int begin_byte_index = begin_index / 8;
-	const int end_byte_index = (end_index / 8) + 1;
+	const int begin_byte_index = begin_bit_index / 8;
+	const int end_byte_index = (end_bit_index / 8) + 1;
 
 	for (int i = begin_byte_index; i < end_byte_index; i++)
 	{
@@ -132,14 +132,14 @@ int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const b
 
 		if (i == begin_byte_index)
 		{
-			begin_byte_bit_index = begin_index % 8;
+			begin_byte_bit_index = begin_bit_index % 8;
 		}
 
 		int end_byte_bit_index = 8;
 
 		if (i == end_byte_index - 1)
 		{
-			end_byte_bit_index = end_index % 8;
+			end_byte_bit_index = end_bit_index % 8;
 		}
 
 		for (int j = begin_byte_bit_index; j < end_byte_bit_index; j++)

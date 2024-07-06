@@ -10,7 +10,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
 
     {
         float *verts;
-        const int verts_size = sizeof(*verts) * 56 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
+        const int verts_size = sizeof(*verts) * ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT * 4 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
         verts = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, verts_size);
 
         if (!verts)
@@ -54,7 +54,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
         zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
     }
 
-    const int verts_stride = sizeof(float) * 14;
+    const int verts_stride = sizeof(float) * ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT;
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, verts_stride, (void *)(sizeof(float) * 0));
     glEnableVertexAttribArray(0);
@@ -149,7 +149,7 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
 
         // Find an available batch slot.
         const int slot_activity_bitset_begin_index = (ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * layer_index) + (ZFW_SPRITE_BATCH_SLOT_LIMIT * i);
-        const int slot_index = zfw_get_first_inactive_bitset_bit_index_in_range(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_index, slot_activity_bitset_begin_index + ZFW_SPRITE_BATCH_SLOT_LIMIT);
+        const int slot_index = zfw_get_first_inactive_bitset_bit_index_in_range(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_index, slot_activity_bitset_begin_index + ZFW_SPRITE_BATCH_SLOT_LIMIT) - slot_activity_bitset_begin_index;
 
         if (slot_index != -1)
         {
@@ -198,7 +198,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
     const int user_tex_index = batch_data->user_tex_indexes[slot_key_elems.layer_index][slot_key_elems.batch_index][slot_key_elems.tex_unit];
     const zfw_vec_2d_i_t user_tex_size = user_tex_data->sizes[user_tex_index];
 
-    const float verts[] = {
+    const float verts[ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT * 4] = {
         (0.0f - origin.x) * scale.x,
         (0.0f - origin.y) * scale.y,
         pos.x,
@@ -259,6 +259,28 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         blend->b,
         blend->a
     };
+
+    glBindVertexArray(batch_data->vert_array_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
+    glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
+    glBufferSubData(GL_ARRAY_BUFFER, slot_key_elems.slot_index * sizeof(verts), sizeof(verts), verts);
+
+    return ZFW_TRUE;
+}
+
+zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas)
+{
+    if (!(slot_key & 1))
+    {
+        zfw_log_error("Attempting to clear a render layer sprite batch slot using an inactive key!");
+        return ZFW_FALSE;
+    }
+
+    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
+    zfw_get_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
+
+    const zfw_sprite_batch_data_t *const batch_data = &batch_datas[slot_key_elems.batch_data_index];
+
+    const float verts[ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT * 4] = { 0 };
 
     glBindVertexArray(batch_data->vert_array_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
     glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
