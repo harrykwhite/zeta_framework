@@ -2,7 +2,7 @@
 #include <math.h>
 #include "zfw.h"
 
-static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_index, const int batch_index, zfw_sprite_batch_data_t *const batch_data, zfw_mem_arena_t *const mem_arena)
+static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_index, const int batch_index, zfw_sprite_batch_data_t *const batch_data)
 {
     glBindVertexArray(batch_data->vert_array_gl_ids[layer_index][batch_index]);
 
@@ -11,7 +11,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
     {
         float *verts;
         const int verts_size = sizeof(*verts) * 56 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
-        verts = zfw_mem_arena_alloc(mem_arena, verts_size);
+        verts = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, verts_size);
 
         if (!verts)
         {
@@ -23,7 +23,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
 
         glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
 
-        zfw_rewind_mem_arena(mem_arena);
+        zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batch_data->elem_buf_gl_ids[layer_index][batch_index]);
@@ -31,7 +31,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
     {
         unsigned short *indices;
         const int indices_size = sizeof(*indices) * 6 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
-        indices = zfw_mem_arena_alloc(mem_arena, indices_size);
+        indices = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, indices_size);
 
         if (!indices)
         {
@@ -51,7 +51,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
 
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
 
-        zfw_rewind_mem_arena(mem_arena);
+        zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
     }
 
     const int verts_stride = sizeof(float) * 14;
@@ -110,7 +110,7 @@ static int get_sprite_batch_slot_key_elem_bit_count(const zfw_sprite_batch_slot_
     return 0;
 }
 
-zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas, zfw_mem_arena_t *const mem_arena)
+zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas)
 {
     int tex_unit_limit;
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &tex_unit_limit);
@@ -172,9 +172,9 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
     if (first_inactive_batch_index != -1)
     {
         // Initialize and activate a new sprite batch. If successful, try this all again.
-        if (init_and_activate_render_layer_sprite_batch(layer_index, first_inactive_batch_index, &batch_datas[batch_data_id], mem_arena))
+        if (init_and_activate_render_layer_sprite_batch(layer_index, first_inactive_batch_index, &batch_datas[batch_data_id]))
         {
-            return zfw_take_slot_from_render_layer_sprite_batch(batch_data_id, layer_index, user_tex_index, batch_datas, mem_arena);
+            return zfw_take_slot_from_render_layer_sprite_batch(batch_data_id, layer_index, user_tex_index, batch_datas);
         }
     }
 

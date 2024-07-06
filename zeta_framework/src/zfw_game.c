@@ -5,14 +5,14 @@
 #include <GLFW/glfw3.h>
 #include "zfw.h"
 
+zfw_mem_arena_t zfw_g_main_mem_arena;
+zfw_mem_arena_t zfw_g_tick_mem_arena;
+
 ////// Internal Structs //////
 
 // Pointers to data to be cleaned up on game end. If a pointer is null, it should be because the data hasn't been set up yet and thus does not need to be cleaned.
 typedef struct
 {
-	zfw_mem_arena_t *main_mem_arena;
-	zfw_mem_arena_t *tick_mem_arena;
-
 	GLFWwindow *glfw_window;
 
 	zfw_user_asset_data_t *user_asset_data;
@@ -178,14 +178,14 @@ static void glfw_joystick_callback(int glfw_joystick_index, int glfw_event)
 }
 
 ////// Static Asset Functions //////
-static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_t *const user_asset_data, FILE *const assets_file_fs, zfw_mem_arena_t *const mem_arena)
+static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_t *const user_asset_data, FILE *const assets_file_fs)
 {
 	// Retrieve texture data.
 	fread(&user_asset_data->tex_data.tex_count, sizeof(user_asset_data->tex_data.tex_count), 1, assets_file_fs);
 
 	if (user_asset_data->tex_data.tex_count)
 	{
-		user_asset_data->tex_data.gl_ids = zfw_mem_arena_alloc(mem_arena, sizeof(*user_asset_data->tex_data.gl_ids) * user_asset_data->tex_data.tex_count);
+		user_asset_data->tex_data.gl_ids = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, sizeof(*user_asset_data->tex_data.gl_ids) * user_asset_data->tex_data.tex_count);
 
 		if (!user_asset_data->tex_data.gl_ids)
 		{
@@ -195,7 +195,7 @@ static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_
 
 		glGenTextures(user_asset_data->tex_data.tex_count, user_asset_data->tex_data.gl_ids);
 
-		user_asset_data->tex_data.sizes = zfw_mem_arena_alloc(mem_arena, sizeof(*user_asset_data->tex_data.sizes) * user_asset_data->tex_data.tex_count);
+		user_asset_data->tex_data.sizes = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, sizeof(*user_asset_data->tex_data.sizes) * user_asset_data->tex_data.tex_count);
 
 		if (!user_asset_data->tex_data.sizes)
 		{
@@ -208,7 +208,7 @@ static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_
 			fread(&user_asset_data->tex_data.sizes[i], sizeof(user_asset_data->tex_data.sizes[i]), 1, assets_file_fs);
 
 			const int px_data_size = user_asset_data->tex_data.sizes[i].x * user_asset_data->tex_data.sizes[i].y * ZFW_TEX_CHANNEL_COUNT;
-			unsigned char *const px_data = zfw_mem_arena_alloc(mem_arena, px_data_size);
+			unsigned char *const px_data = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, px_data_size);
 
 			if (!px_data)
 			{
@@ -224,7 +224,7 @@ static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, user_asset_data->tex_data.sizes[i].x, user_asset_data->tex_data.sizes[i].y, 0, GL_RGBA, GL_UNSIGNED_BYTE, px_data);
 
 			// The pixel data for this texture is no longer needed in the arena, so rewind and allow it to be overwritten.
-			zfw_rewind_mem_arena(mem_arena);
+			zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
 		}
 	}
 
@@ -233,7 +233,7 @@ static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_
 
 	if (user_asset_data->shader_prog_data.prog_count)
 	{
-		user_asset_data->shader_prog_data.gl_ids = zfw_mem_arena_alloc(mem_arena, sizeof(*user_asset_data->shader_prog_data.gl_ids) * user_asset_data->shader_prog_data.prog_count);
+		user_asset_data->shader_prog_data.gl_ids = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, sizeof(*user_asset_data->shader_prog_data.gl_ids) * user_asset_data->shader_prog_data.prog_count);
 
 		if (!user_asset_data->shader_prog_data.gl_ids)
 		{
@@ -257,7 +257,7 @@ static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_
 }
 
 ////// Static Rendering Functions //////
-static zfw_bool_t init_sprite_batch_data(zfw_sprite_batch_data_t *const batch_data, zfw_mem_arena_t *const mem_arena)
+static zfw_bool_t init_sprite_batch_data(zfw_sprite_batch_data_t *const batch_data)
 {
 	glGenVertexArrays(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->vert_array_gl_ids);
 	glGenBuffers(ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, (GLuint *)batch_data->vert_buf_gl_ids);
@@ -364,14 +364,14 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
 	glfwTerminate();
 
 	// Clean memory arenas.
-	if (cleanup_data->tick_mem_arena)
+	if (zfw_g_tick_mem_arena.buf)
 	{
-		zfw_clean_mem_arena(cleanup_data->tick_mem_arena);
+		zfw_clean_mem_arena(&zfw_g_tick_mem_arena);
 	}
 
-	if (cleanup_data->main_mem_arena)
+	if (zfw_g_main_mem_arena.buf)
 	{
-		zfw_clean_mem_arena(cleanup_data->main_mem_arena);
+		zfw_clean_mem_arena(&zfw_g_main_mem_arena);
 	}
 }
 ///////////////////////////////////
@@ -395,9 +395,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 	game_cleanup_data_t cleanup_data = { 0 };
 
 	// Initialize the main memory arena.
-	zfw_mem_arena_t main_mem_arena;
-
-	if (!zfw_init_mem_arena(&main_mem_arena, ZFW_MAIN_MEM_ARENA_SIZE))
+	if (!zfw_init_mem_arena(&zfw_g_main_mem_arena, ZFW_MAIN_MEM_ARENA_SIZE))
 	{
 		zfw_log_error("Failed to initialize the main memory arena! (Size: %d bytes)", ZFW_MAIN_MEM_ARENA_SIZE);
 
@@ -407,12 +405,8 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 		return ZFW_FALSE;
 	}
 
-	cleanup_data.main_mem_arena = &main_mem_arena;
-
 	// Initialize the tick memory arena.
-	zfw_mem_arena_t tick_mem_arena;
-
-	if (!zfw_init_mem_arena(&tick_mem_arena, ZFW_TICK_MEM_ARENA_SIZE))
+	if (!zfw_init_mem_arena(&zfw_g_tick_mem_arena, ZFW_TICK_MEM_ARENA_SIZE))
 	{
 		zfw_log_error("Failed to initialize the tick memory arena! (Size: %d bytes)", ZFW_TICK_MEM_ARENA_SIZE);
 
@@ -421,8 +415,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
 		return ZFW_FALSE;
 	}
-
-	cleanup_data.tick_mem_arena = &tick_mem_arena;
 
 	// Initialize GLFW.
 	if (!glfwInit())
@@ -525,7 +517,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 			return ZFW_FALSE;
 		}
 
-		const zfw_bool_t asset_data_read_successful = retrieve_user_asset_data_from_assets_file(&user_asset_data, assets_file_fs, &main_mem_arena);
+		const zfw_bool_t asset_data_read_successful = retrieve_user_asset_data_from_assets_file(&user_asset_data, assets_file_fs);
 
 		fclose(assets_file_fs);
 
@@ -555,7 +547,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
 	for (int i = 0; i < ZFW_SPRITE_BATCH_DATA_ID_COUNT; i++)
 	{
-		if (!init_sprite_batch_data(&sprite_batch_datas[i], &main_mem_arena))
+		if (!init_sprite_batch_data(&sprite_batch_datas[i]))
 		{
 			user_run_info->on_clean_func(user_run_info->user_ptr);
 			clean_game(&cleanup_data);
@@ -591,7 +583,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 		// Run the user-defined game initialization function.
 		{
 			zfw_user_game_init_func_data_t init_data;
-			init_data.main_mem_arena = &main_mem_arena;
 			init_data.window_size = window_state.size;
 			init_data.window_fullscreen = &user_window_fullscreen;
 			init_data.user_asset_data = &user_asset_data;
@@ -668,8 +659,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 					// Run user-defined game tick function.
 					zfw_user_game_tick_func_data_t tick_data;
 					tick_data.restart = &restart;
-					tick_data.main_mem_arena = &main_mem_arena;
-					tick_data.tick_mem_arena = &tick_mem_arena;
 					tick_data.window_size = window_state.size;
 					tick_data.window_fullscreen = &user_window_fullscreen;
 					tick_data.input_state = &input_state;
@@ -681,7 +670,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 					user_run_info->on_tick_func(user_run_info->user_ptr, &tick_data);
 				}
 
-				zfw_reset_mem_arena(&tick_mem_arena);
+				zfw_reset_mem_arena(&zfw_g_tick_mem_arena);
 
 				frame_time_interval_accum -= target_tick_interval;
 
@@ -724,7 +713,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 				if (user_run_info->on_window_resize_func && call_user_window_resize_func)
 				{
 					zfw_user_window_resize_func_data_t window_resize_data;
-					window_resize_data.main_mem_arena = &main_mem_arena;
 					window_resize_data.window_size = window_state.size;
 					window_resize_data.user_asset_data = &user_asset_data;
 					window_resize_data.sprite_batch_datas = sprite_batch_datas;

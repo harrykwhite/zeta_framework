@@ -311,8 +311,6 @@ typedef struct
 // Game state data to be provided to the user in their defined game initialization function.
 typedef struct
 {
-    zfw_mem_arena_t *main_mem_arena;
-
     zfw_vec_2d_i_t window_size;
     zfw_bool_t *window_fullscreen;
 
@@ -326,9 +324,6 @@ typedef struct
 typedef struct
 {
     zfw_bool_t *restart;
-
-    zfw_mem_arena_t *main_mem_arena;
-    zfw_mem_arena_t *tick_mem_arena;
 
     zfw_vec_2d_i_t window_size;
     zfw_bool_t *window_fullscreen;
@@ -345,8 +340,6 @@ typedef struct
 // Game state data to be provided to the user in their defined window resize function.
 typedef struct
 {
-    zfw_mem_arena_t *main_mem_arena;
-
     zfw_vec_2d_i_t window_size;
 
     const zfw_user_asset_data_t *user_asset_data;
@@ -375,6 +368,10 @@ typedef struct
 
     void *user_ptr;
 } zfw_user_game_run_info_t;
+
+////// Memory Arenas //////
+extern zfw_mem_arena_t zfw_g_main_mem_arena;
+extern zfw_mem_arena_t zfw_g_tick_mem_arena;
 
 ////// Built-in Colors //////
 extern const zfw_color_t zfw_g_builtin_color_white;
@@ -428,7 +425,7 @@ zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t button
 void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert_shader_src, const char *const frag_shader_src);
 
 ////// Rendering Functions //////
-zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas, zfw_mem_arena_t *const mem_arena);
+zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas);
 zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
