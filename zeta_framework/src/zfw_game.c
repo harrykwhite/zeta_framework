@@ -681,9 +681,12 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
 				frame_time_interval_accum -= target_tick_interval;
 
-				// Update the tick input state for next time.
 				if (i == tick_count - 1)
 				{
+					// Reset the mouse scroll now that the ticks are complete.
+					input_state.mouse_scroll = 0;
+
+					// Update the tick input state for next time.
 					last_tick_input_state = input_state;
 				}
 			}
@@ -729,11 +732,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 				}
 			}
 
+			// Rendering
 			if (tick_count > 0)
 			{
-				input_state.mouse_scroll = 0;
-
-				// Rendering
 				glClearColor(0.2f, 0.075f, 0.15f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT);
 
