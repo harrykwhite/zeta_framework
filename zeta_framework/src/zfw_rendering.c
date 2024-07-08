@@ -131,18 +131,20 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
         }
 
         // Find a texture unit to use.
-        int tex_unit = -1;
+        int tex_unit_index = -1;
 
         for (int j = 0; j < tex_unit_limit; j++)
         {
-            if (batch_datas[batch_data_id].user_tex_indexes[layer_index][i][j] == -1 || batch_datas[batch_data_id].user_tex_indexes[layer_index][i][j] == user_tex_index)
+            const zfw_sprite_batch_tex_unit_t tex_unit = batch_datas[batch_data_id].tex_units[layer_index][i][j];
+
+            if (tex_unit.count == 0 || tex_unit.user_tex_index == user_tex_index)
             {
-                tex_unit = j;
+                tex_unit_index = j;
                 break;
             }
         }
 
-        if (tex_unit == -1)
+        if (tex_unit_index == -1)
         {
             continue;
         }
@@ -160,7 +162,9 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
         {
             // Take the slot and return a key.
             zfw_toggle_bitset_bit(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_index + slot_index, ZFW_TRUE);
-            batch_datas[batch_data_id].user_tex_indexes[layer_index][i][tex_unit] = user_tex_index;
+
+            batch_datas[batch_data_id].tex_units[layer_index][i][tex_unit_index].user_tex_index = user_tex_index;
+            batch_datas[batch_data_id].tex_units[layer_index][i][tex_unit_index].count++;
 
             zfw_sprite_batch_slot_key_elems_t slot_key_elems;
             slot_key_elems.active = ZFW_TRUE;
@@ -168,7 +172,7 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
             slot_key_elems.layer_index = layer_index;
             slot_key_elems.batch_index = i;
             slot_key_elems.slot_index = slot_index;
-            slot_key_elems.tex_unit = tex_unit;
+            slot_key_elems.tex_unit_index = tex_unit_index;
 
             return zfw_create_sprite_batch_slot_key(&slot_key_elems);
         }
@@ -200,7 +204,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
 
     const zfw_sprite_batch_data_t *const batch_data = &batch_datas[slot_key_elems.batch_data_index];
 
-    const int user_tex_index = batch_data->user_tex_indexes[slot_key_elems.layer_index][slot_key_elems.batch_index][slot_key_elems.tex_unit];
+    const int user_tex_index = batch_data->tex_units[slot_key_elems.layer_index][slot_key_elems.batch_index][slot_key_elems.tex_unit_index].user_tex_index;
     const zfw_vec_2d_i_t user_tex_size = user_tex_data->sizes[user_tex_index];
 
     const float verts[ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT * 4] = {
@@ -211,7 +215,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         src_rect->width,
         src_rect->height,
         rot,
-        slot_key_elems.tex_unit,
+        slot_key_elems.tex_unit_index,
         (float)src_rect->x / user_tex_size.x,
         (float)src_rect->y / user_tex_size.y,
         blend->r,
@@ -226,7 +230,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         src_rect->width,
         src_rect->height,
         rot,
-        slot_key_elems.tex_unit,
+        slot_key_elems.tex_unit_index,
         (float)(src_rect->x + src_rect->width) / user_tex_size.x,
         (float)src_rect->y / user_tex_size.y,
         blend->r,
@@ -241,7 +245,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         src_rect->width,
         src_rect->height,
         rot,
-        slot_key_elems.tex_unit,
+        slot_key_elems.tex_unit_index,
         (float)(src_rect->x + src_rect->width) / user_tex_size.x,
         (float)(src_rect->y + src_rect->height) / user_tex_size.y,
         blend->r,
@@ -256,7 +260,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
         src_rect->width,
         src_rect->height,
         rot,
-        slot_key_elems.tex_unit,
+        slot_key_elems.tex_unit_index,
         (float)src_rect->x / user_tex_size.x,
         (float)(src_rect->y + src_rect->height) / user_tex_size.y,
         blend->r,
@@ -290,6 +294,32 @@ zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_
     glBindVertexArray(batch_data->vert_array_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
     glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
     glBufferSubData(GL_ARRAY_BUFFER, slot_key_elems.slot_index * sizeof(verts), sizeof(verts), verts);
+
+    return ZFW_TRUE;
+}
+
+zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_data_t *const batch_datas)
+{
+    if (!(slot_key & 1))
+    {
+        zfw_log_error("Attempting to free a render layer sprite batch slot using an inactive key!");
+        return ZFW_FALSE;
+    }
+
+    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
+    zfw_get_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
+
+    zfw_sprite_batch_data_t *const batch_data = &batch_datas[slot_key_elems.batch_data_index];
+
+    const float verts[ZFW_BUILTIN_TEXTURED_RECT_VERT_COUNT * 4] = { 0 };
+
+    glBindVertexArray(batch_data->vert_array_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
+    glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[slot_key_elems.layer_index][slot_key_elems.batch_index]);
+    glBufferSubData(GL_ARRAY_BUFFER, slot_key_elems.slot_index * sizeof(verts), sizeof(verts), verts);
+
+    zfw_toggle_bitset_bit(&batch_data->slot_activity_bitset, (slot_key_elems.layer_index * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_SPRITE_BATCH_SLOT_LIMIT) + (slot_key_elems.batch_index * ZFW_SPRITE_BATCH_SLOT_LIMIT) + slot_key_elems.slot_index, ZFW_FALSE);
+
+    batch_data->tex_units[slot_key_elems.layer_index][slot_key_elems.batch_index][slot_key_elems.tex_unit_index].count--;
 
     return ZFW_TRUE;
 }

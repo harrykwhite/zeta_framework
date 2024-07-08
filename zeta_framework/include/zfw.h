@@ -282,13 +282,19 @@ typedef struct
 ////// Rendering Structs //////
 typedef struct
 {
+    int user_tex_index;
+    int count; // The number of slots in the batch that are mapped to this texture unit.
+} zfw_sprite_batch_tex_unit_t;
+
+typedef struct
+{
     zfw_render_layer_sprite_batch_activity_bits_t batch_activity_bits[ZFW_RENDER_LAYER_LIMIT];
 
     GLuint vert_array_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
     GLuint vert_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
     GLuint elem_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
 
-    int user_tex_indexes[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT][ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT];
+    zfw_sprite_batch_tex_unit_t tex_units[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT][ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT];
 
     zfw_bitset_t slot_activity_bitset;
 } zfw_sprite_batch_data_t;
@@ -300,7 +306,7 @@ typedef struct
     int layer_index;
     int batch_index;
     int slot_index;
-    int tex_unit;
+    int tex_unit_index;
 } zfw_sprite_batch_slot_key_elems_t;
 
 typedef struct
@@ -434,6 +440,7 @@ void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert
 zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas);
 zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
 zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas);
+zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_data_t *const batch_datas);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 
