@@ -300,7 +300,7 @@ static void draw_sprite_batches(zfw_sprite_batch_data_t *const batch_data, const
 
 			for (int k = 0; k < ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT; k++)
 			{
-				const int user_tex_index = batch_data->user_tex_indexes[i][j][k];
+				const int user_tex_index = batch_data->tex_units[i][j][k].user_tex_index;
 
 				if (user_tex_index != -1)
 				{
@@ -581,7 +581,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 		for (int i = 0; i < ZFW_SPRITE_BATCH_DATA_ID_COUNT; i++)
 		{
 			memset(sprite_batch_datas[i].batch_activity_bits, 0, sizeof(sprite_batch_datas[i].batch_activity_bits));
-			memset(sprite_batch_datas[i].user_tex_indexes, -1, sizeof(sprite_batch_datas[i].user_tex_indexes));
 			zfw_clear_bitset(&sprite_batch_datas[i].slot_activity_bitset);
 		}
 
