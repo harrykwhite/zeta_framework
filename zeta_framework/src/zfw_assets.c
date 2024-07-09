@@ -1,5 +1,6 @@
+#include <zfw.h>
+
 #include <stdlib.h>
-#include "zfw.h"
 
 void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert_shader_src, const char *const frag_shader_src)
 {

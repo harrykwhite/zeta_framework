@@ -1,5 +1,6 @@
+#include <zfw.h>
+
 #include <string.h>
-#include "zfw.h"
 
 void zfw_reset_gamepad_state(zfw_input_state_t *const input_state)
 {

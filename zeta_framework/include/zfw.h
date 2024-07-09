@@ -2,7 +2,7 @@
 #define __ZFW_H__
 
 #include <zfw_common.h>
-#include "glad/glad.h"
+#include "external/glad.h"
 
 ////// Memory Arena Sizes //////
 #define ZFW_MAIN_MEM_ARENA_SIZE ((1 << 20) * 100)
@@ -213,14 +213,6 @@ typedef unsigned char zfw_render_layer_sprite_batch_activity_bits_t;
 typedef unsigned int zfw_sprite_batch_slot_key_t;
 
 ////// Utility Structs //////
-typedef struct
-{
-    void *buf;
-    int buf_size;
-    int buf_offs;
-    int buf_alloc_size_last; // The size of the most recent allocation, stored for bitset rewinding functionality.
-} zfw_mem_arena_t;
-
 // A bitset utility struct with a heap-allocated set of bytes. This should only be used if you need an exceptionally large number of bits.
 typedef struct
 {
@@ -392,12 +384,6 @@ extern const zfw_color_t zfw_g_builtin_color_yellow;
 
 ////// Utility Functions //////
 float zfw_get_clamped_num(const float num, const float min, const float max);
-
-zfw_bool_t zfw_init_mem_arena(zfw_mem_arena_t *const mem_arena, const int size);
-void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size);
-void zfw_reset_mem_arena(zfw_mem_arena_t *const mem_arena);
-void zfw_rewind_mem_arena(zfw_mem_arena_t *const mem_arena);
-void zfw_clean_mem_arena(zfw_mem_arena_t *const mem_arena);
 
 zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
 void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, const int bit_active);

@@ -18,9 +18,25 @@
 
 #define ZFW_ASSETS_FILE_NAME "assets.zfwdat"
 #define ZFW_TEX_CHANNEL_COUNT 4
-#define ZFW_SHADER_SRC_MAX_LEN 2048
+#define ZFW_SHADER_SRC_BUF_SIZE 2048
+#define FONT_CHAR_RANGE_BEGIN 32
+#define FONT_CHAR_RANGE_SIZE 95
+#define FONT_TEX_CHANNEL_COUNT 4
 
 typedef int zfw_bool_t;
+
+typedef char font_char_hor_offs_t;
+typedef short font_char_vert_offs_t;
+typedef short font_char_hor_advance_t;
+typedef short font_char_kerning_t;
+
+typedef struct
+{
+    void *buf;
+    int buf_size;
+    int buf_offs;
+    int buf_alloc_size_last; // The size of the most recent allocation, stored for bitset rewinding functionality.
+} zfw_mem_arena_t;
 
 typedef struct
 {
@@ -49,10 +65,23 @@ typedef struct
     float elems[4][4];
 } zfw_matrix_4x4_t;
 
+typedef struct
+{
+    unsigned short x, y;
+    unsigned short width, height;
+} font_char_src_rect_t;
+
 void zfw_log(const char *const msg, ...);
 void zfw_log_error(const char *const msg, ...);
+void zfw_log_warning(const char *const msg, ...);
 
 zfw_bool_t zfw_check_data_type_sizes();
+
+zfw_bool_t zfw_init_mem_arena(zfw_mem_arena_t *const mem_arena, const int size);
+void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size);
+void zfw_reset_mem_arena(zfw_mem_arena_t *const mem_arena);
+void zfw_rewind_mem_arena(zfw_mem_arena_t *const mem_arena);
+void zfw_clean_mem_arena(zfw_mem_arena_t *const mem_arena);
 
 zfw_vec_2d_t zfw_create_vec_2d(const float x, const float y);
 zfw_vec_2d_i_t zfw_create_vec_2d_i(const int x, const int y);

@@ -1,6 +1,7 @@
+#include <zfw.h>
+
 #include <string.h>
 #include <math.h>
-#include "zfw.h"
 
 static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_index, const int batch_index, zfw_sprite_batch_data_t *const batch_data)
 {

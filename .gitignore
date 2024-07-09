@@ -1,6 +1,4 @@
-.vscode/
-
-/castle_prototype/
+clean.bat
 
 bin/
 obj/

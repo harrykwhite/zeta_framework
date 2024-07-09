@@ -1,9 +1,10 @@
+#include <zfw.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <GLFW/glfw3.h>
-#include "zfw.h"
 
 ////// Globals //////
 zfw_mem_arena_t zfw_g_main_mem_arena;
@@ -250,10 +251,10 @@ static zfw_bool_t retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_
 
 		for (int i = 0; i < user_asset_data->shader_prog_data.prog_count; i++)
 		{
-			char vert_shader_src_buf[ZFW_SHADER_SRC_MAX_LEN];
+			char vert_shader_src_buf[ZFW_SHADER_SRC_BUF_SIZE];
 			fread(vert_shader_src_buf, sizeof(*vert_shader_src_buf), sizeof(vert_shader_src_buf) / sizeof(*vert_shader_src_buf), assets_file_fs);
 
-			char frag_shader_src_buf[ZFW_SHADER_SRC_MAX_LEN];
+			char frag_shader_src_buf[ZFW_SHADER_SRC_BUF_SIZE];
 			fread(frag_shader_src_buf, sizeof(*frag_shader_src_buf), sizeof(frag_shader_src_buf) / sizeof(*frag_shader_src_buf), assets_file_fs);
 
 			zfw_gen_shader_prog(&user_asset_data->shader_prog_data.gl_ids[i], vert_shader_src_buf, frag_shader_src_buf);

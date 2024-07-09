@@ -1,35 +1,36 @@
-.PHONY: all make_dirs
+.PHONY: all make_zfw_common make_output_dirs
 
 DEBUG ?= 0
 
-COMP_FLAGS = -Wall -std=c11
+COMP_FLAGS := -Wall -std=c11
+
+OUTPUT_SUBDIR := release
 
 ifeq ($(DEBUG), 1)
-    COMP_FLAGS += -g
-
-    BIN_SUBDIR = debug
-    OBJ_SUBDIR = debug
-else
-    BIN_SUBDIR = release
-    OBJ_SUBDIR = release
+    COMP_FLAGS := -g $(COMP_FLAGS)
+    OUTPUT_SUBDIR := debug
 endif
 
-SRC_DIR = src
-OBJ_DIR = obj/$(OBJ_SUBDIR)
-BIN_DIR = bin/$(BIN_SUBDIR)
+SRC_DIR := src
+INCLUDE_DIRS := -Iinclude -I../zfw_common/include
+LIB_DIRS := -L../zfw_common/bin/$(OUTPUT_SUBDIR)
+OBJ_DIR := obj/$(OUTPUT_SUBDIR)
+BIN_DIR := bin/$(OUTPUT_SUBDIR)
 
-OBJS = $(OBJ_DIR)/glad.o $(OBJ_DIR)/zfw_game.o $(OBJ_DIR)/zfw_input.o $(OBJ_DIR)/zfw_assets.o $(OBJ_DIR)/zfw_rendering.o $(OBJ_DIR)/zfw_utils.o
+SRCS := $(SRC_DIR)/zfw_game.c $(SRC_DIR)/zfw_input.c $(SRC_DIR)/zfw_assets.c $(SRC_DIR)/zfw_rendering.c $(SRC_DIR)/zfw_utils.c $(SRC_DIR)/external/glad.c
+LIBS := -lzfw_common
+OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
-INCLUDE_PATHS = -Iinclude -I../zfw_common/include
+all: make_zfw_common make_output_dirs $(BIN_DIR)/libzeta_framework.a
 
-all: make_dirs $(BIN_DIR)/libzeta_framework.a
+make_zfw_common:
+	$(MAKE) -C ../zfw_common
 
-make_dirs:
-	mkdir -p $(BIN_DIR)
-	mkdir -p $(OBJ_DIR)
+make_output_dirs:
+	mkdir -p $(OBJ_DIR) $(OBJ_DIR)/external $(BIN_DIR)
 
 $(BIN_DIR)/libzeta_framework.a: $(OBJS)
 	ar rcs $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_PATHS) -DGLFW_INCLUDE_NONE
+	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_DIRS)

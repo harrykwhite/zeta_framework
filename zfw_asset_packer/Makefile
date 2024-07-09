@@ -1,42 +1,36 @@
-.PHONY: all make_dirs make_zfw_common
+.PHONY: all make_zfw_common make_output_dirs
 
 DEBUG ?= 0
 
-COMP_FLAGS = -Wall -std=c11
+COMP_FLAGS := -Wall -std=c11
+
+OUTPUT_SUBDIR := release
 
 ifeq ($(DEBUG), 1)
-    COMP_FLAGS += -g
-
-    BIN_SUBDIR = debug
-    OBJ_SUBDIR = debug
-else
-    BIN_SUBDIR = release
-    OBJ_SUBDIR = release
+    COMP_FLAGS := -g $(COMP_FLAGS)
+    OUTPUT_SUBDIR := debug
 endif
 
-SRC_DIR = src
+SRC_DIR := src
+INCLUDE_DIRS := -I../zfw_common/include $(shell pkgconf --cflags freetype2)
+LIB_DIRS := -L../zfw_common/bin/$(OUTPUT_SUBDIR) $(shell pkgconf --libs freetype2)
+OBJ_DIR := obj/$(OUTPUT_SUBDIR)
+BIN_DIR := bin/$(OUTPUT_SUBDIR)
 
-OBJ_DIR = obj/$(OBJ_SUBDIR)
-BIN_DIR = bin/$(BIN_SUBDIR)
+SRCS := $(SRC_DIR)/main.c
+LIBS := -lzfw_common -lcjson -lfreetype
+OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
-OBJS = $(OBJ_DIR)/stb_image.o $(OBJ_DIR)/main.o
-
-INCLUDE_PATHS = -I../zfw_common/include
-
-LIB_PATHS = -L../zfw_common/bin/$(BIN_SUBDIR)
-LIBS = -lzfw_common -lcjson
-
-all: make_zfw_common make_dirs $(BIN_DIR)/zfw_asset_packer
+all: make_zfw_common make_output_dirs $(BIN_DIR)/zfw_asset_packer
 
 make_zfw_common:
-	$(MAKE) -C ../zfw_common DEBUG=$(DEBUG)
+	$(MAKE) -C ../zfw_common
 
-make_dirs:
-	mkdir -p $(BIN_DIR)
-	mkdir -p $(OBJ_DIR)
+make_output_dirs:
+	mkdir -p $(OBJ_DIR) $(BIN_DIR)
 
 $(BIN_DIR)/zfw_asset_packer: $(OBJS)
-	gcc $(COMP_FLAGS) -o $@ $^ $(LIB_PATHS) $(LIBS)
+	gcc $(COMP_FLAGS) -o $@ $^ $(INCLUDE_DIRS) $(LIB_DIRS) $(LIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_PATHS)
+	gcc $(COMP_FLAGS) $< -o $@ $(INCLUDE_DIRS)
