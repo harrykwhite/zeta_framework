@@ -16,16 +16,15 @@ INCLUDE_DIRS := -Iinclude
 OBJ_DIR := obj/$(OUTPUT_SUBDIR)
 BIN_DIR := bin/$(OUTPUT_SUBDIR)
 
-SRCS := $(SRC_DIR)/zfw_common_debug.c $(SRC_DIR)/zfw_common_mem.c $(SRC_DIR)/zfw_common_math.c
-OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+OBJS := $(OBJ_DIR)/zfw_common_debug.o $(OBJ_DIR)/zfw_common_mem.o $(OBJ_DIR)/zfw_common_math.o
 
 all: make_output_dirs $(BIN_DIR)/libzfw_common.a
 
 make_output_dirs:
 	mkdir -p $(OBJ_DIR) $(BIN_DIR)
 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | make_output_dirs
+	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_DIRS)
+
 $(BIN_DIR)/libzfw_common.a: $(OBJS)
 	ar rcs $@ $^
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_DIRS)

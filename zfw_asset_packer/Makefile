@@ -17,20 +17,19 @@ LIB_DIRS := -L../zfw_common/bin/$(OUTPUT_SUBDIR) $(shell pkgconf --libs freetype
 OBJ_DIR := obj/$(OUTPUT_SUBDIR)
 BIN_DIR := bin/$(OUTPUT_SUBDIR)
 
-SRCS := $(SRC_DIR)/main.c
 LIBS := -lzfw_common -lcjson -lfreetype
-OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+OBJS := $(OBJ_DIR)/main.o
 
 all: make_zfw_common make_output_dirs $(BIN_DIR)/zfw_asset_packer
 
 make_zfw_common:
 	$(MAKE) -C ../zfw_common
 
-make_output_dirs:
+make_output_dirs: make_zfw_common
 	mkdir -p $(OBJ_DIR) $(BIN_DIR)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | make_output_dirs
+	gcc $(COMP_FLAGS) $< -o $@ $(INCLUDE_DIRS)
 
 $(BIN_DIR)/zfw_asset_packer: $(OBJS)
 	gcc $(COMP_FLAGS) -o $@ $^ $(INCLUDE_DIRS) $(LIB_DIRS) $(LIBS)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	gcc $(COMP_FLAGS) $< -o $@ $(INCLUDE_DIRS)

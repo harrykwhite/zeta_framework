@@ -17,20 +17,19 @@ LIB_DIRS := -L../zfw_common/bin/$(OUTPUT_SUBDIR)
 OBJ_DIR := obj/$(OUTPUT_SUBDIR)
 BIN_DIR := bin/$(OUTPUT_SUBDIR)
 
-SRCS := $(SRC_DIR)/zfw_game.c $(SRC_DIR)/zfw_input.c $(SRC_DIR)/zfw_assets.c $(SRC_DIR)/zfw_rendering.c $(SRC_DIR)/zfw_utils.c $(SRC_DIR)/external/glad.c
 LIBS := -lzfw_common
-OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+OBJS := $(OBJ_DIR)/zfw_game.o $(OBJ_DIR)/zfw_input.o $(OBJ_DIR)/zfw_assets.o $(OBJ_DIR)/zfw_rendering.o $(OBJ_DIR)/zfw_utils.o $(OBJ_DIR)/external/glad.o
 
 all: make_zfw_common make_output_dirs $(BIN_DIR)/libzeta_framework.a
 
 make_zfw_common:
 	$(MAKE) -C ../zfw_common
 
-make_output_dirs:
+make_output_dirs: make_zfw_common
 	mkdir -p $(OBJ_DIR) $(OBJ_DIR)/external $(BIN_DIR)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | make_output_dirs
+	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_DIRS)
 
 $(BIN_DIR)/libzeta_framework.a: $(OBJS)
 	ar rcs $@ $^
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	gcc $(COMP_FLAGS) -c $< -o $@ $(INCLUDE_DIRS)
