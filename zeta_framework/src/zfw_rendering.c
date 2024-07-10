@@ -104,7 +104,7 @@ static int get_sprite_batch_slot_key_elem_bit_count(const zfw_sprite_batch_slot_
         case ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__SLOT_INDEX:
             return log2(ZFW_SPRITE_BATCH_SLOT_LIMIT);
 
-        case ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT:
+        case ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT_INDEX:
             return log2(ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT);
     }
 
@@ -150,19 +150,14 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
             continue;
         }
 
-        // Find an available batch slot.
-        const int slot_activity_bitset_begin_index = (ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * layer_index) + (ZFW_SPRITE_BATCH_SLOT_LIMIT * i);
-        const int slot_index = zfw_get_first_inactive_bitset_bit_index_in_range(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_index, slot_activity_bitset_begin_index + ZFW_SPRITE_BATCH_SLOT_LIMIT) - slot_activity_bitset_begin_index;
+        // Find an available batch slot by searching through the bitset.
+        const int slot_activity_bitset_begin_bit_index = (ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * layer_index) + (ZFW_SPRITE_BATCH_SLOT_LIMIT * i);
+        const int slot_activity_bitset_first_inactive_bit_index = zfw_get_first_inactive_bitset_bit_index_in_range(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_bit_index, slot_activity_bitset_begin_bit_index + ZFW_SPRITE_BATCH_SLOT_LIMIT);
 
-        if (slot_index == -1)
-        {
-            // TODO: Resize the OpenGL batch data.
-        }
-
-        if (slot_index != -1)
+        if (slot_activity_bitset_first_inactive_bit_index != -1)
         {
             // Take the slot and return a key.
-            zfw_toggle_bitset_bit(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_index + slot_index, ZFW_TRUE);
+            zfw_toggle_bitset_bit(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_first_inactive_bit_index, ZFW_TRUE);
 
             batch_datas[batch_data_id].tex_units[layer_index][i][tex_unit_index].user_tex_index = user_tex_index;
             batch_datas[batch_data_id].tex_units[layer_index][i][tex_unit_index].count++;
@@ -172,7 +167,7 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
             slot_key_elems.batch_data_index = batch_data_id;
             slot_key_elems.layer_index = layer_index;
             slot_key_elems.batch_index = i;
-            slot_key_elems.slot_index = slot_index;
+            slot_key_elems.slot_index = slot_activity_bitset_first_inactive_bit_index - slot_activity_bitset_begin_bit_index;
             slot_key_elems.tex_unit_index = tex_unit_index;
 
             return zfw_create_sprite_batch_slot_key(&slot_key_elems);
@@ -192,11 +187,100 @@ zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const z
     return 0;
 }
 
+void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas)
+{
+    if (slot_key_count <= 0)
+    {
+        zfw_log_warning("Invalid \"slot_key_count\" parameter value (%d) for function \"zfw_take_multiple_slots_from_render_layer_sprite_batch\".", slot_key_count);
+        return;
+    }
+
+    int tex_unit_limit;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &tex_unit_limit);
+
+    int slots_found_count = 0;
+    int first_inactive_batch_index = -1;
+
+    for (int i = 0; i < ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT; i++)
+    {
+        // Check if the batch is active.
+        if (!(batch_datas[batch_data_id].batch_activity_bits[layer_index] & ((zfw_render_layer_sprite_batch_activity_bits_t)1 << i)))
+        {
+            if (first_inactive_batch_index == -1)
+            {
+                first_inactive_batch_index = i;
+            }
+
+            continue;
+        }
+
+        // Find a texture unit to use.
+        int tex_unit_index = -1;
+
+        for (int j = 0; j < tex_unit_limit; j++)
+        {
+            const zfw_sprite_batch_tex_unit_t tex_unit = batch_datas[batch_data_id].tex_units[layer_index][i][j];
+
+            if (tex_unit.count == 0 || tex_unit.user_tex_index == user_tex_index)
+            {
+                tex_unit_index = j;
+                break;
+            }
+        }
+
+        if (tex_unit_index == -1)
+        {
+            continue;
+        }
+
+        // Search for and take inactive batch slots.
+        const int slot_activity_bitset_begin_bit_index = (ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * layer_index) + (i * ZFW_SPRITE_BATCH_SLOT_LIMIT);
+
+        for (int j = 0; j < ZFW_SPRITE_BATCH_SLOT_LIMIT; j++)
+        {
+            if (!zfw_is_bitset_bit_active(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_bit_index + j))
+            {
+                // Take the slot and add a key.
+                zfw_toggle_bitset_bit(&batch_datas[batch_data_id].slot_activity_bitset, slot_activity_bitset_begin_bit_index + j, ZFW_TRUE);
+
+                batch_datas[batch_data_id].tex_units[layer_index][i][tex_unit_index].user_tex_index = user_tex_index;
+                batch_datas[batch_data_id].tex_units[layer_index][i][tex_unit_index].count++;
+
+                zfw_sprite_batch_slot_key_elems_t slot_key_elems;
+                slot_key_elems.active = ZFW_TRUE;
+                slot_key_elems.batch_data_index = batch_data_id;
+                slot_key_elems.layer_index = layer_index;
+                slot_key_elems.batch_index = i;
+                slot_key_elems.slot_index = j;
+                slot_key_elems.tex_unit_index = tex_unit_index;
+
+                slot_keys[slots_found_count] = zfw_create_sprite_batch_slot_key(&slot_key_elems);
+
+                slots_found_count++;
+
+                if (slots_found_count == slot_key_count)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    if (first_inactive_batch_index != -1)
+    {
+        // Initialize and activate a new sprite batch. If successful, try this all again.
+        if (init_and_activate_render_layer_sprite_batch(layer_index, first_inactive_batch_index, &batch_datas[batch_data_id]))
+        {
+            zfw_take_multiple_slots_from_render_layer_sprite_batch(slot_keys + slots_found_count, slot_key_count - slots_found_count, batch_data_id, layer_index, user_tex_index, batch_datas);
+        }
+    }
+}
+
 zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data)
 {
     if (!(slot_key & 1))
     {
-        zfw_log_error("Attempting to write to a render layer sprite batch slot using an inactive key!");
+        zfw_log_warning("Attempting to write to a render layer sprite batch slot using an inactive key!");
         return ZFW_FALSE;
     }
 
@@ -281,7 +365,7 @@ zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_
 {
     if (!(slot_key & 1))
     {
-        zfw_log_error("Attempting to clear a render layer sprite batch slot using an inactive key!");
+        zfw_log_warning("Attempting to clear a render layer sprite batch slot using an inactive key!");
         return ZFW_FALSE;
     }
 
@@ -303,7 +387,7 @@ zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_k
 {
     if (!(slot_key & 1))
     {
-        zfw_log_error("Attempting to free a render layer sprite batch slot using an inactive key!");
+        zfw_log_warning("Attempting to free a render layer sprite batch slot using an inactive key!");
         return ZFW_FALSE;
     }
 
@@ -335,6 +419,27 @@ zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_ba
         slot_key |= ((int *)slot_key_elems)[i] << slot_key_bit_index;
         slot_key_bit_index += get_sprite_batch_slot_key_elem_bit_count(i);
     }
+
+#if 0
+    //zfw_sprite_batch_slot_key_elems_t *new_elems;
+    //zfw_get_sprite_batch_slot_key_elems(slot_key, new_elems);
+
+    // There's a miscalculation for sure!
+
+    if (new_elems->batch_index == 1 && new_elems->slot_index == 8190)
+    {
+        int c = 2;
+    }
+
+    if (new_elems->tex_unit_index > 20)
+    {
+        int b = 2;
+        // This always runs, but it should never!
+        //zfw_log("%d");
+
+        // Yeah, this gives a fucked negative number.
+    }
+#endif
 
     return slot_key;
 }

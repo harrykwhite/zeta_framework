@@ -57,10 +57,7 @@ void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, cons
 
 void zfw_clear_bitset(zfw_bitset_t *const bitset)
 {
-	for (int i = 0; i < bitset->byte_count; i++)
-	{
-		bitset->bytes[i] = 0x00;
-	}
+	memset(bitset->bytes, 0, bitset->byte_count);
 }
 
 void zfw_clean_bitset(zfw_bitset_t *const bitset)
@@ -123,7 +120,12 @@ int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const b
 	return -1;
 }
 
-int zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset)
+zfw_bool_t zfw_is_bitset_bit_active(const zfw_bitset_t *const bitset, const int bit_index)
+{
+	return (bitset->bytes[bit_index / 8] & ((unsigned char)1 << (bit_index % 8))) != 0;
+}
+
+zfw_bool_t zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset)
 {
 	for (int i = 0; i < bitset->byte_count; i++)
 	{
@@ -136,7 +138,7 @@ int zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset)
 	return ZFW_TRUE;
 }
 
-int zfw_is_bitset_clear(const zfw_bitset_t *const bitset)
+zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset)
 {
 	for (int i = 0; i < bitset->byte_count; i++)
 	{

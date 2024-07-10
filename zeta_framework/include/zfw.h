@@ -56,7 +56,7 @@
 
 ////// Rendering Limits //////
 
-// These must all be powers of 2!
+// NOTE: These must all be powers of 2!
 #define ZFW_RENDER_LAYER_LIMIT (1 << 5)
 #define ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT (1 << 3)
 #define ZFW_SPRITE_BATCH_SLOT_LIMIT (1 << 13)
@@ -188,7 +188,7 @@ typedef enum
     ZFW_SPRITE_BATCH_DATA_ID__VIEW,
     ZFW_SPRITE_BATCH_DATA_ID__SCREEN,
 
-    ZFW_SPRITE_BATCH_DATA_ID_COUNT // This must be a power of 2!
+    ZFW_SPRITE_BATCH_DATA_ID_COUNT // NOTE: This must be a power of 2!
 } zfw_sprite_batch_data_id_t;
 
 typedef enum
@@ -198,7 +198,7 @@ typedef enum
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__LAYER_INDEX,
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_INDEX,
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__SLOT_INDEX,
-    ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT,
+    ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT_INDEX,
 
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID_COUNT
 } zfw_sprite_batch_slot_key_elem_id_t;
@@ -391,6 +391,7 @@ void zfw_clear_bitset(zfw_bitset_t *const bitset);
 void zfw_clean_bitset(zfw_bitset_t *const bitset);
 int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset);
 int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_index, const int end_bit_index);
+zfw_bool_t zfw_is_bitset_bit_active(const zfw_bitset_t *const bitset, const int bit_index);
 zfw_bool_t zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset);
 zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset);
 
@@ -424,6 +425,7 @@ void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert
 
 ////// Rendering Functions //////
 zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas);
+void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas); // NOTE: This function will not set all the slot keys to be inactive for you, should not all slots be taken.
 zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
 zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas);
 zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_data_t *const batch_datas);

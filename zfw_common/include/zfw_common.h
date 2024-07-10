@@ -23,7 +23,7 @@
 #define FONT_CHAR_RANGE_SIZE 95
 #define FONT_TEX_CHANNEL_COUNT 4
 
-typedef int zfw_bool_t;
+typedef int zfw_bool_t; // IDEA: Make this an unsigned char?
 
 typedef char font_char_hor_offs_t;
 typedef short font_char_vert_offs_t;
@@ -35,7 +35,7 @@ typedef struct
     void *buf;
     int buf_size;
     int buf_offs;
-    int buf_alloc_size_last; // The size of the most recent allocation, stored for bitset rewinding functionality.
+    int buf_alloc_size_last; // The size of the most recent allocation, stored for rewinding functionality.
 } zfw_mem_arena_t;
 
 typedef struct
@@ -87,6 +87,7 @@ zfw_vec_2d_t zfw_create_vec_2d(const float x, const float y);
 zfw_vec_2d_i_t zfw_create_vec_2d_i(const int x, const int y);
 zfw_vec_2d_t zfw_get_vec_2d_sum(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 zfw_vec_2d_t zfw_get_vec_2d_scaled(const zfw_vec_2d_t vec, const float scalar);
+zfw_vec_2d_i_t zfw_get_vec_2d_i_scaled(const zfw_vec_2d_i_t vec, const float scalar);
 zfw_vec_2d_t zfw_get_vec_2d_cross_prod(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t vec);
 float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
