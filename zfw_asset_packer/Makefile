@@ -29,7 +29,7 @@ make_output_dirs: make_zfw_common
 	mkdir -p $(OBJ_DIR) $(BIN_DIR)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | make_output_dirs
-	gcc $(COMP_FLAGS) $< -o $@ $(INCLUDE_DIRS)
+	gcc $(COMP_FLAGS) $(INCLUDE_DIRS) -c $< -o $@
 
 $(BIN_DIR)/zfw_asset_packer: $(OBJS)
-	gcc $(COMP_FLAGS) -o $@ $^ $(INCLUDE_DIRS) $(LIB_DIRS) $(LIBS)
+	gcc $(COMP_FLAGS) $^ -o $@ $(LIB_DIRS) $(LIBS)
