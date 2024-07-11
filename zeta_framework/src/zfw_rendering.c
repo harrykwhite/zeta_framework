@@ -710,7 +710,7 @@ zfw_char_batch_key_t zfw_create_char_batch_key(const zfw_char_batch_key_elems_t 
 void zfw_init_char_batch_key_elems(const zfw_sprite_batch_slot_key_t key, zfw_char_batch_key_elems_t *const key_elems)
 {
     key_elems->active = key & 1;
-    key_elems->layer_index = (key >> 1) & ((ZFW_RENDER_LAYER_LIMIT << 1) - 1);
+    key_elems->layer_index = (key >> 1) & (ZFW_RENDER_LAYER_LIMIT - 1);
     key_elems->batch_index = key >> (1 + (int)log2(ZFW_RENDER_LAYER_LIMIT));
 }
 
