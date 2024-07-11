@@ -13,6 +13,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
         float *verts;
         const int verts_size = sizeof(*verts) * ZFW_BUILTIN_TEXTURED_RECT_SHADER_PROG_VERT_COUNT * 4 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
         verts = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, verts_size);
+        zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
 
         if (!verts)
         {
@@ -23,8 +24,6 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
         memset(verts, 0, verts_size);
 
         glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
-
-        zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batch_data->elem_buf_gl_ids[layer_index][batch_index]);
@@ -33,6 +32,7 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
         unsigned short *indices;
         const int indices_size = sizeof(*indices) * 6 * ZFW_SPRITE_BATCH_SLOT_LIMIT;
         indices = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, indices_size);
+        zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
 
         if (!indices)
         {
@@ -51,8 +51,6 @@ static zfw_bool_t init_and_activate_render_layer_sprite_batch(const int layer_in
         }
 
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
-
-        zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
     }
 
     const int verts_stride = sizeof(float) * ZFW_BUILTIN_TEXTURED_RECT_SHADER_PROG_VERT_COUNT;
@@ -278,14 +276,14 @@ void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slo
 
 zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data)
 {
-    if (!(slot_key & 1))
+    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
+    zfw_init_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
+
+    if (!slot_key_elems.active)
     {
         zfw_log_warning("Attempting to write to a render layer sprite batch slot using an inactive key!");
         return ZFW_FALSE;
     }
-
-    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
-    zfw_get_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
 
     const zfw_sprite_batch_data_t *const batch_data = &batch_datas[slot_key_elems.batch_data_index];
 
@@ -363,14 +361,14 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
 
 zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas)
 {
-    if (!(slot_key & 1))
+    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
+    zfw_init_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
+
+    if (!slot_key_elems.active)
     {
         zfw_log_warning("Attempting to clear a render layer sprite batch slot using an inactive key!");
         return ZFW_FALSE;
     }
-
-    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
-    zfw_get_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
 
     const zfw_sprite_batch_data_t *const batch_data = &batch_datas[slot_key_elems.batch_data_index];
 
@@ -385,14 +383,14 @@ zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_
 
 zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_data_t *const batch_datas)
 {
-    if (!(slot_key & 1))
+    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
+    zfw_init_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
+
+    if (!slot_key_elems.active)
     {
         zfw_log_warning("Attempting to free a render layer sprite batch slot using an inactive key!");
         return ZFW_FALSE;
     }
-
-    zfw_sprite_batch_slot_key_elems_t slot_key_elems;
-    zfw_get_sprite_batch_slot_key_elems(slot_key, &slot_key_elems);
 
     zfw_sprite_batch_data_t *const batch_data = &batch_datas[slot_key_elems.batch_data_index];
 
@@ -423,7 +421,7 @@ zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_ba
     return slot_key;
 }
 
-void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems)
+void zfw_init_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems)
 {
     int slot_key_bit_index = 0;
 
@@ -434,7 +432,7 @@ void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_
     }
 }
 
-int zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_t *const batch_data)
+zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_t *const batch_data)
 {
     const int batch_index_offs = layer_index * ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT;
 
@@ -456,18 +454,17 @@ int zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_
                     float *verts;
                     const int verts_size = sizeof(*verts) * ZFW_BUILTIN_CHAR_RECT_SHADER_PROG_VERT_COUNT * 4 * ZFW_CHAR_BATCH_SLOT_LIMIT;
                     verts = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, verts_size);
+                    zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
 
                     if (!verts)
                     {
                         zfw_log_error("Failed to allocate %d bytes for render layer character batch vertices!", verts_size);
-                        return ZFW_FALSE;
+                        return 0;
                     }
 
                     memset(verts, 0, verts_size);
 
                     glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
-
-                    zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
                 }
 
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batch_data->elem_buf_gl_ids[layer_index][batch_index]);
@@ -476,11 +473,12 @@ int zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_
                     unsigned short *indices;
                     const int indices_size = sizeof(*indices) * 6 * ZFW_CHAR_BATCH_SLOT_LIMIT;
                     indices = zfw_mem_arena_alloc(&zfw_g_main_mem_arena, indices_size);
+                    zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
 
                     if (!indices)
                     {
                         zfw_log_error("Failed to allocate %d bytes for render layer character batch elements!", indices_size);
-                        return ZFW_FALSE;
+                        return 0;
                     }
 
                     for (int i = 0; i < ZFW_CHAR_BATCH_SLOT_LIMIT; i++)
@@ -494,8 +492,6 @@ int zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_
                     }
 
                     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
-
-                    zfw_rewind_mem_arena(&zfw_g_main_mem_arena);
                 }
 
                 const int verts_stride = sizeof(float) * ZFW_BUILTIN_CHAR_RECT_SHADER_PROG_VERT_COUNT;
@@ -511,17 +507,34 @@ int zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_
                 batch_data->batch_init_bits[layer_index] |= batch_bitmask;
             }
 
+            // Take the batch and return a key.
             batch_data->batch_activity_bits[layer_index] |= batch_bitmask;
 
-            return batch_index;
+            zfw_char_batch_key_elems_t key_elems;
+            key_elems.active = ZFW_TRUE;
+            key_elems.layer_index = layer_index;
+            key_elems.batch_index = batch_index;
+
+            return zfw_create_char_batch_key(&key_elems);
         }
     }
 
-    return -1;
+    return 0;
 }
 
-zfw_bool_t zfw_write_to_render_layer_char_batch(const int layer_index, const int batch_index, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_data_t *const batch_data, const zfw_user_font_data_t *const user_font_data)
+zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_data_t *const batch_data, const zfw_user_font_data_t *const user_font_data)
 {
+    zfw_char_batch_key_elems_t key_elems;
+    zfw_init_char_batch_key_elems(key, &key_elems);
+
+    if (!key_elems.active)
+    {
+        zfw_log_warning("Attempting to write to a render layer character batch using an inactive key!");
+        return ZFW_FALSE;
+    }
+
+    const int batch_user_font_index = batch_data->user_font_indexes[key_elems.layer_index][key_elems.batch_index];
+
     const int text_len = strnlen(text, ZFW_CHAR_BATCH_SLOT_LIMIT);
 
 #ifdef ZFW_DEBUG
@@ -530,8 +543,6 @@ zfw_bool_t zfw_write_to_render_layer_char_batch(const int layer_index, const int
         zfw_log_warning("Writing to a render layer character batch using text of a length exceeding the limit of %d!", ZFW_CHAR_BATCH_SLOT_LIMIT);
     }
 #endif
-
-    const int batch_user_font_index = batch_data->user_font_indexes[layer_index][batch_index];
 
     // Determine the positions of text characters based on font information, alongside the overall dimensions of the text to be used when applying alignment.
     zfw_vec_2d_t char_draw_positions[ZFW_CHAR_BATCH_SLOT_LIMIT];
@@ -586,8 +597,8 @@ zfw_bool_t zfw_write_to_render_layer_char_batch(const int layer_index, const int
     const int text_height = char_draw_pos_pen.y + user_font_data->line_heights[batch_user_font_index];
 
     // Write the character render data.
-    glBindVertexArray(batch_data->vert_array_gl_ids[layer_index][batch_index]);
-    glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[layer_index][batch_index]);
+    glBindVertexArray(batch_data->vert_array_gl_ids[key_elems.layer_index][key_elems.batch_index]);
+    glBindBuffer(GL_ARRAY_BUFFER, batch_data->vert_buf_gl_ids[key_elems.layer_index][key_elems.batch_index]);
 
     for (int i = 0; i < text_len; i++)
     {
@@ -638,12 +649,69 @@ zfw_bool_t zfw_write_to_render_layer_char_batch(const int layer_index, const int
     return ZFW_TRUE;
 }
 
-void clear_render_layer_char_batch(const int layer_index, const int batch_index, zfw_char_batch_data_t *const batch_data)
+void zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_data_t *const batch_data)
+{
+    zfw_char_batch_key_elems_t key_elems;
+    zfw_init_char_batch_key_elems(key, &key_elems);
+
+    if (!key_elems.active)
+    {
+        zfw_log_warning("Attempting to set the position of a render layer character batch using an inactive key!");
+        return;
+    }
+
+    batch_data->positions[key_elems.layer_index][key_elems.batch_index] = pos;
+}
+
+void zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key, const zfw_vec_2d_t scale, zfw_char_batch_data_t *const batch_data)
+{
+    zfw_char_batch_key_elems_t key_elems;
+    zfw_init_char_batch_key_elems(key, &key_elems);
+
+    if (!key_elems.active)
+    {
+        zfw_log_warning("Attempting to set the scale of a render layer character batch using an inactive key!");
+        return;
+    }
+
+    batch_data->scales[key_elems.layer_index][key_elems.batch_index] = scale;
+}
+
+void zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_data_t *const batch_data)
+{
+    zfw_char_batch_key_elems_t key_elems;
+    zfw_init_char_batch_key_elems(key, &key_elems);
+
+    if (!key_elems.active)
+    {
+        zfw_log_warning("Attempting to set the blend of a render layer character batch using an inactive key!");
+        return;
+    }
+
+    batch_data->blends[key_elems.layer_index][key_elems.batch_index] = *blend;
+}
+
+void zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_data_t *const batch_data)
 {
 }
 
-void free_render_layer_char_batch(const int layer_index, const int batch_index, zfw_char_batch_data_t *const batch_data)
+void zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_data_t *const batch_data)
 {
+}
+
+zfw_char_batch_key_t zfw_create_char_batch_key(const zfw_char_batch_key_elems_t *const key_elems)
+{
+    zfw_char_batch_key_t key = key_elems->active;
+    key |= key_elems->layer_index << 1;
+    key |= key_elems->batch_index << (1 + (int)log2(ZFW_RENDER_LAYER_LIMIT));
+    return key;
+}
+
+void zfw_init_char_batch_key_elems(const zfw_sprite_batch_slot_key_t key, zfw_char_batch_key_elems_t *const key_elems)
+{
+    key_elems->active = key & 1;
+    key_elems->layer_index = (key >> 1) & ((ZFW_RENDER_LAYER_LIMIT << 1) - 1);
+    key_elems->batch_index = key >> (1 + (int)log2(ZFW_RENDER_LAYER_LIMIT));
 }
 
 zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)

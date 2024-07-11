@@ -490,6 +490,8 @@ static void draw_char_batches_of_layer(const int layer_index, zfw_char_batch_dat
         }
 
         glUniform2fv(glGetUniformLocation(builtin_shader_prog_data->char_rect_prog_gl_id, "u_pos"), 1, (float *)&batch_data->positions[layer_index][i]);
+        glUniform2fv(glGetUniformLocation(builtin_shader_prog_data->char_rect_prog_gl_id, "u_scale"), 1, (float *)&batch_data->scales[layer_index][i]);
+        glUniform4fv(glGetUniformLocation(builtin_shader_prog_data->char_rect_prog_gl_id, "u_blend"), 1, (float *)&batch_data->blends[layer_index][i]);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, user_font_data->tex_glids[batch_data->user_font_indexes[layer_index][i]]);
@@ -773,14 +775,34 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     {
         zfw_bool_t restart = ZFW_FALSE; // Whether or not to break out of the main loop and restart the game. This is modifiable by the user in their tick function through a pointer.
 
+        // Set defaults for sprite batch datas and character batch data.
         for (int i = 0; i < ZFW_SPRITE_BATCH_DATA_ID_COUNT; i++)
         {
             memset(sprite_batch_datas[i].batch_activity_bits, 0, sizeof(sprite_batch_datas[i].batch_activity_bits));
+            memset(sprite_batch_datas[i].tex_units, 0, sizeof(sprite_batch_datas[i].tex_units));
             zfw_clear_bitset(&sprite_batch_datas[i].slot_activity_bitset);
         }
 
         memset(char_batch_data.batch_init_bits, 0, sizeof(char_batch_data.batch_init_bits));
         memset(char_batch_data.batch_activity_bits, 0, sizeof(char_batch_data.batch_activity_bits));
+        memset(char_batch_data.slot_counts, 0, sizeof(char_batch_data.slot_counts));
+        memset(char_batch_data.user_font_indexes, 0, sizeof(char_batch_data.user_font_indexes));
+        memset(char_batch_data.positions, 0, sizeof(char_batch_data.positions));
+
+        for (int i = 0; i < ZFW_RENDER_LAYER_LIMIT; i++)
+        {
+            for (int j = 0; j < ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT; j++)
+            {
+                char_batch_data.scales[i][j].x = 1.0f;
+                char_batch_data.scales[i][j].y = 1.0f;
+
+                char_batch_data.blends[i][j].r = 1.0f;
+                char_batch_data.blends[i][j].g = 1.0f;
+                char_batch_data.blends[i][j].b = 1.0f;
+                char_batch_data.blends[i][j].a = 1.0f;
+            }
+        }
+        //
 
         zfw_view_state_t view_state = { 0 };
         view_state.scale = 1.0f;

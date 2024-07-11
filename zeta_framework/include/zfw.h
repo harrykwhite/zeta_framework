@@ -60,12 +60,13 @@
     "layout (location = 1) in vec2 a_tex_coord;\n" \
     "out vec2 v_tex_coord;\n" \
     "uniform vec2 u_pos;\n" \
+    "uniform vec2 u_scale;\n" \
     "uniform mat4 u_proj;\n" \
     "void main()\n" \
     "{\n" \
     "    mat4 model = mat4(\n" \
-    "        vec4(1.0f, 0.0f, 0.0f, 0.0f),\n" \
-    "        vec4(0.0f, 1.0f, 0.0f, 0.0f),\n" \
+    "        vec4(u_scale.x, 0.0f, 0.0f, 0.0f),\n" \
+    "        vec4(0.0f, u_scale.y, 0.0f, 0.0f),\n" \
     "        vec4(0.0f, 0.0f, 1.0f, 0.0f),\n" \
     "        vec4(u_pos.x, u_pos.y, 0.0f, 1.0f)\n" \
     "    );\n" \
@@ -77,10 +78,12 @@
     "#version 430 core\n" \
     "in vec2 v_tex_coord;\n" \
     "out vec4 o_frag_color;\n" \
+    "uniform vec4 u_blend;\n" \
     "uniform sampler2D u_tex;\n" \
     "void main()\n" \
     "{\n" \
-    "    o_frag_color = texture(u_tex, v_tex_coord);\n" \
+    "    vec4 tex_color = texture(u_tex, v_tex_coord);\n" \
+    "    o_frag_color = tex_color * u_blend;\n" \
     "}\n"
 
 #define ZFW_BUILTIN_CHAR_RECT_SHADER_PROG_VERT_COUNT 4
@@ -262,6 +265,7 @@ typedef unsigned char zfw_render_layer_sprite_batch_activity_bits_t;
 typedef unsigned int zfw_sprite_batch_slot_key_t;
 
 typedef unsigned char zfw_render_layer_char_batch_bits_t;
+typedef unsigned short zfw_char_batch_key_t;
 
 ////// Utility Structs //////
 // A bitset utility struct with a heap-allocated set of bytes. This should only be used if you need an exceptionally large number of bits.
@@ -386,7 +390,16 @@ typedef struct
 
     int user_font_indexes[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
     zfw_vec_2d_t positions[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
+    zfw_vec_2d_t scales[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
+    zfw_color_t blends[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
 } zfw_char_batch_data_t;
+
+typedef struct
+{
+    zfw_bool_t active;
+    int layer_index;
+    int batch_index;
+} zfw_char_batch_key_elems_t;
 
 typedef struct
 {
@@ -520,12 +533,17 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
 zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas);
 zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_data_t *const batch_datas);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
-void zfw_get_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
+void zfw_init_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 
-int zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_write_to_render_layer_char_batch(const int layer_index, const int batch_index, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_data_t *const batch_data, const zfw_user_font_data_t *const user_font_data);
-void clear_render_layer_char_batch(const int layer_index, const int batch_index, zfw_char_batch_data_t *const batch_data);
-void free_render_layer_char_batch(const int layer_index, const int batch_index, zfw_char_batch_data_t *const batch_data);
+zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_t *const batch_data);
+zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_data_t *const batch_data, const zfw_user_font_data_t *const user_font_data);
+void zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_data_t *const batch_data);
+void zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key, const zfw_vec_2d_t scale, zfw_char_batch_data_t *const batch_data);
+void zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_data_t *const batch_data);
+void zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_data_t *const batch_data);
+void zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_data_t *const batch_data);
+zfw_char_batch_key_t zfw_create_char_batch_key(const zfw_char_batch_key_elems_t *const key_elems);
+void zfw_init_char_batch_key_elems(const zfw_sprite_batch_slot_key_t key, zfw_char_batch_key_elems_t *const key_elems);
 
 zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state);
 zfw_vec_2d_t zfw_get_screen_to_view_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state);
