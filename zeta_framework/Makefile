@@ -7,7 +7,7 @@ COMP_FLAGS := -Wall -std=c11
 OUTPUT_SUBDIR := release
 
 ifeq ($(DEBUG), 1)
-    COMP_FLAGS := -g $(COMP_FLAGS)
+    COMP_FLAGS := -g $(COMP_FLAGS) -DZFW_DEBUG
     OUTPUT_SUBDIR := debug
 endif
 

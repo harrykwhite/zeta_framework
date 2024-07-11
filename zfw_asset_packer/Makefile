@@ -7,7 +7,7 @@ COMP_FLAGS := -Wall -std=c11
 OUTPUT_SUBDIR := release
 
 ifeq ($(DEBUG), 1)
-    COMP_FLAGS := -g $(COMP_FLAGS)
+    COMP_FLAGS := -g $(COMP_FLAGS) -DZFW_DEBUG
     OUTPUT_SUBDIR := debug
 endif
 
@@ -32,4 +32,4 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | make_output_dirs
 	gcc $(COMP_FLAGS) $(INCLUDE_DIRS) -c $< -o $@
 
 $(BIN_DIR)/zfw_asset_packer: $(OBJS)
-	gcc $(COMP_FLAGS) $^ -o $@ $(LIB_DIRS) $(LIBS)
+	gcc $^ -o $@ $(LIB_DIRS) $(LIBS)

@@ -19,9 +19,9 @@
 #define ZFW_ASSETS_FILE_NAME "assets.zfwdat"
 #define ZFW_TEX_CHANNEL_COUNT 4
 #define ZFW_SHADER_SRC_BUF_SIZE 2048
-#define FONT_CHAR_RANGE_BEGIN 32
-#define FONT_CHAR_RANGE_SIZE 95
-#define FONT_TEX_CHANNEL_COUNT 4
+#define ZFW_FONT_CHAR_RANGE_BEGIN 32
+#define ZFW_FONT_CHAR_RANGE_SIZE 95
+#define ZFW_FONT_TEX_CHANNEL_COUNT 4
 
 typedef int zfw_bool_t; // IDEA: Make this an unsigned char?
 
