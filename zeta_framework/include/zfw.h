@@ -98,7 +98,7 @@
 #define ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT (1 << 5)
 
 #define ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT ZFW_SIZE_IN_BITS(zfw_render_layer_char_batch_bits_t)
-#define ZFW_CHAR_BATCH_SLOT_LIMIT (1 << 7)
+#define ZFW_CHAR_BATCH_SLOT_LIMIT (1 << 6)
 
 /////// Input Code Enums //////
 typedef enum
@@ -264,7 +264,7 @@ typedef unsigned short zfw_gamepad_buttons_down_bits_t;
 typedef unsigned char zfw_render_layer_sprite_batch_activity_bits_t;
 typedef unsigned int zfw_sprite_batch_slot_key_t;
 
-typedef unsigned char zfw_render_layer_char_batch_bits_t;
+typedef unsigned long long zfw_render_layer_char_batch_bits_t;
 typedef unsigned short zfw_char_batch_key_t;
 
 ////// Utility Structs //////
@@ -487,6 +487,7 @@ extern const zfw_color_t zfw_g_builtin_color_yellow;
 
 ////// Utility Functions //////
 float zfw_get_clamped_num(const float num, const float min, const float max);
+int zfw_get_int_digit_count(const int i);
 
 zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
 void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, const int bit_active);
