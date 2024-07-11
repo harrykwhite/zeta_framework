@@ -876,7 +876,21 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             //
 
             const double frame_time = glfwGetTime();
-            frame_time_interval_accum += frame_time - frame_time_last;
+            double frame_time_change = frame_time - frame_time_last;
+
+            // Handle frame time anomalies.
+            if (frame_time_change > target_tick_interval * 8.0)
+            {
+                frame_time_change = target_tick_interval;
+            }
+
+            if (frame_time_change < 0.0)
+            {
+                frame_time_change = 0.0;
+            }
+            //
+
+            frame_time_interval_accum += frame_time_change;
             frame_time_last = frame_time;
 
             int tick_count = (int)(frame_time_interval_accum / target_tick_interval);
