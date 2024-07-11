@@ -785,7 +785,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
         memset(char_batch_data.batch_init_bits, 0, sizeof(char_batch_data.batch_init_bits));
         memset(char_batch_data.batch_activity_bits, 0, sizeof(char_batch_data.batch_activity_bits));
-        memset(char_batch_data.slot_counts, 0, sizeof(char_batch_data.slot_counts));
         memset(char_batch_data.user_font_indexes, 0, sizeof(char_batch_data.user_font_indexes));
         memset(char_batch_data.positions, 0, sizeof(char_batch_data.positions));
 
