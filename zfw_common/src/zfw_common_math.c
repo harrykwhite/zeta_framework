@@ -54,6 +54,14 @@ float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
     return sqrtf((diff_hor * diff_hor) + (diff_ver * diff_ver));
 }
 
+float zfw_get_dist_i(const zfw_vec_2d_i_t vec_a, const zfw_vec_2d_i_t vec_b)
+{
+    const int diff_hor = vec_b.x - vec_a.x;
+    const int diff_ver = vec_b.y - vec_a.y;
+
+    return sqrtf((diff_hor * diff_hor) + (diff_ver * diff_ver));
+}
+
 float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
 {
     return atan2f(vec_b.y - vec_a.y, vec_b.x - vec_a.x);

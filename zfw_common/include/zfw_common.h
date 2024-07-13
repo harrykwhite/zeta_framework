@@ -92,6 +92,7 @@ zfw_vec_2d_t zfw_get_vec_2d_cross_prod(const zfw_vec_2d_t vec_a, const zfw_vec_2
 float zfw_get_vec_2d_mag(const zfw_vec_2d_t vec);
 zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t vec);
 float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
+float zfw_get_dist_i(const zfw_vec_2d_i_t vec_a, const zfw_vec_2d_i_t vec_b);
 float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b);
 
 void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height);
