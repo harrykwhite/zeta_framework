@@ -28,7 +28,7 @@ void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size)
     }
 
     mem_arena->buf_offs += size;
-    mem_arena->buf_alloc_size_last = size;
+    mem_arena->buf_last_alloc_size = size;
 
     return (char *)mem_arena->buf + (mem_arena->buf_offs - size);
 }
@@ -36,13 +36,13 @@ void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size)
 void zfw_reset_mem_arena(zfw_mem_arena_t *const mem_arena)
 {
     mem_arena->buf_offs = 0;
-    mem_arena->buf_alloc_size_last = 0;
+    mem_arena->buf_last_alloc_size = 0;
 }
 
 void zfw_rewind_mem_arena(zfw_mem_arena_t *const mem_arena)
 {
-    mem_arena->buf_offs -= mem_arena->buf_alloc_size_last;
-    mem_arena->buf_alloc_size_last = 0;
+    mem_arena->buf_offs -= mem_arena->buf_last_alloc_size;
+    mem_arena->buf_last_alloc_size = 0;
 }
 
 void zfw_clean_mem_arena(zfw_mem_arena_t *const mem_arena)

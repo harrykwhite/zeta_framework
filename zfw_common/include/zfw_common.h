@@ -35,7 +35,7 @@ typedef struct
     void *buf;
     int buf_size;
     int buf_offs;
-    int buf_alloc_size_last; // The size of the most recent allocation, stored for rewinding functionality.
+    int buf_last_alloc_size; // The size of the most recent allocation, stored for rewinding functionality.
 } zfw_mem_arena_t;
 
 typedef struct

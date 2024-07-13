@@ -454,7 +454,7 @@ static void draw_sprite_batches_of_layer(const int layer_index, zfw_sprite_batch
         glUniform1iv(glGetUniformLocation(builtin_shader_prog_data->textured_rect_prog_gl_id, "u_textures"), ZFW_STATIC_ARRAY_LEN(tex_units), tex_units);
 
         glBindVertexArray(batch_data->vert_array_gl_ids[layer_index][i]);
-        glDrawElements(GL_TRIANGLES, 6 * ZFW_SPRITE_BATCH_SLOT_LIMIT, GL_UNSIGNED_SHORT, NULL);
+        glDrawElements(GL_TRIANGLES, 6 * ZFW_SPRITE_BATCH_SLOT_LIMIT, GL_UNSIGNED_SHORT, 0);
     }
 }
 
@@ -497,7 +497,7 @@ static void draw_char_batches_of_layer(const int layer_index, zfw_char_batch_dat
         glBindTexture(GL_TEXTURE_2D, user_font_data->tex_glids[batch_data->user_font_indexes[layer_index][i]]);
 
         glBindVertexArray(batch_data->vert_array_gl_ids[layer_index][i]);
-        glDrawElements(GL_TRIANGLES, 6 * ZFW_CHAR_BATCH_SLOT_LIMIT, GL_UNSIGNED_SHORT, NULL);
+        glDrawElements(GL_TRIANGLES, 6 * ZFW_CHAR_BATCH_SLOT_LIMIT, GL_UNSIGNED_SHORT, 0);
     }
 }
 
@@ -716,6 +716,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             return ZFW_FALSE;
         }
 
+        zfw_log("Retrieving user asset data from \"%s\"...", ZFW_ASSETS_FILE_NAME);
         const zfw_bool_t asset_data_read_successful = retrieve_user_asset_data_from_assets_file(&user_asset_data, assets_file_fs);
 
         fclose(assets_file_fs);
@@ -739,6 +740,8 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     cleanup_data.builtin_shader_prog_data = &builtin_shader_prog_data;
 
+    zfw_log("Successfully initialized built-in shader programs!");
+
     // Set up rendering.
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -759,11 +762,16 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         cleanup_data.sprite_batch_datas_cleanup_count++;
     }
 
+    zfw_log("Successfully set up sprite batch datas!");
+
     zfw_char_batch_data_t char_batch_data;
     init_char_batch_data(&char_batch_data);
     cleanup_data.char_batch_data = &char_batch_data;
 
+    zfw_log("Successfully set up character batch data!");
+
     // Show the window now that things have been set up.
+    zfw_log("Showing the GLFW window...");
     glfwShowWindow(glfw_window);
     //
 
@@ -771,11 +779,15 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_window_state_t window_prefullscreen_state; // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
 
     // Perform the restart loop.
+    zfw_log("Entering the restart loop...");
+
     while (ZFW_TRUE)
     {
         zfw_bool_t restart = ZFW_FALSE; // Whether or not to break out of the main loop and restart the game. This is modifiable by the user in their tick function through a pointer.
 
         // Set defaults for sprite batch datas and character batch data.
+        zfw_log("Setting sprite batch and character batch data defaults...");
+
         for (int i = 0; i < ZFW_SPRITE_BATCH_DATA_ID_COUNT; i++)
         {
             memset(sprite_batch_datas[i].batch_activity_bits, 0, sizeof(sprite_batch_datas[i].batch_activity_bits));
@@ -827,6 +839,8 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         double frame_time_interval_accum = target_tick_interval; // (The assignment here ensures that a tick is always run on the first frame.)
 
         zfw_bool_t glfw_window_should_close;
+
+        zfw_log("Entering the main loop...");
 
         while (!(glfw_window_should_close = glfwWindowShouldClose(glfw_window)) && !restart)
         {
@@ -988,9 +1002,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                     view.elems[2][2] = 1.0f;
                     view.elems[3][0] = -view_state.pos.x * view_state.scale;
                     view.elems[3][1] = -view_state.pos.y * view_state.scale;
-                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_view"), 1, GL_FALSE, (GLfloat *)&view.elems);
+                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_view"), 1, GL_FALSE, (GLfloat *)view.elems);
 
-                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)&proj.elems);
+                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)proj.elems);
 
                     for (int i = 0; i < ZFW_RENDER_LAYER_LIMIT; i++)
                     {
@@ -1006,15 +1020,15 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
                     zfw_matrix_4x4_t view;
                     zfw_init_identity_matrix_4x4(&view);
-                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_view"), 1, GL_FALSE, (GLfloat *)&view.elems);
+                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_view"), 1, GL_FALSE, (GLfloat *)view.elems);
 
-                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)&proj.elems);
+                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)proj.elems);
 
                     draw_sprite_batches_of_layer(i, &sprite_batch_datas[ZFW_SPRITE_BATCH_DATA_ID__SCREEN], &user_asset_data.tex_data, &builtin_shader_prog_data);
 
                     // Draw layer character batches.
                     glUseProgram(builtin_shader_prog_data.char_rect_prog_gl_id);
-                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.char_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)&proj.elems);
+                    glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.char_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)proj.elems);
                     draw_char_batches_of_layer(i, &char_batch_data, &user_asset_data.font_data, &builtin_shader_prog_data);
                 }
                 //
