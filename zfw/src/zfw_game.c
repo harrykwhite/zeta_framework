@@ -579,7 +579,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     // Ensure data type sizes meet requirements before proceeding.
     if (!zfw_check_data_type_sizes())
     {
-        user_run_info->on_clean_func(user_run_info->user_ptr);
         return ZFW_FALSE;
     }
 
@@ -596,10 +595,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     if (!zfw_init_mem_arena(&zfw_g_main_mem_arena, ZFW_MAIN_MEM_ARENA_SIZE))
     {
         zfw_log_error("Failed to initialize the main memory arena! (Size: %d bytes)", ZFW_MAIN_MEM_ARENA_SIZE);
-
-        user_run_info->on_clean_func(user_run_info->user_ptr);
         clean_game(&cleanup_data);
-
         return ZFW_FALSE;
     }
 
@@ -607,10 +603,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     if (!zfw_init_mem_arena(&zfw_g_tick_mem_arena, ZFW_TICK_MEM_ARENA_SIZE))
     {
         zfw_log_error("Failed to initialize the tick memory arena! (Size: %d bytes)", ZFW_TICK_MEM_ARENA_SIZE);
-
-        user_run_info->on_clean_func(user_run_info->user_ptr);
         clean_game(&cleanup_data);
-
         return ZFW_FALSE;
     }
 
@@ -618,10 +611,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     if (!glfwInit())
     {
         zfw_log_error("Failed to initialize GLFW!");
-
-        user_run_info->on_clean_func(user_run_info->user_ptr);
         clean_game(&cleanup_data);
-
         return ZFW_FALSE;
     }
 
@@ -638,10 +628,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     if (!glfw_window)
     {
         zfw_log_error("Failed to create a GLFW window!");
-
-        user_run_info->on_clean_func(user_run_info->user_ptr);
         clean_game(&cleanup_data);
-
         return ZFW_FALSE;
     }
 
@@ -691,10 +678,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         zfw_log_error("Failed to initialize OpenGL function pointers!");
-
-        user_run_info->on_clean_func(user_run_info->user_ptr);
         clean_game(&cleanup_data);
-
         return ZFW_FALSE;
     }
 
@@ -709,10 +693,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         if (!assets_file_fs)
         {
             zfw_log_error("Failed to open assets file \"%s\"!", ZFW_ASSETS_FILE_NAME);
-
-            user_run_info->on_clean_func(user_run_info->user_ptr);
             clean_game(&cleanup_data);
-
             return ZFW_FALSE;
         }
 
@@ -723,9 +704,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
         if (!asset_data_read_successful)
         {
-            user_run_info->on_clean_func(user_run_info->user_ptr);
             clean_game(&cleanup_data);
-
             return ZFW_FALSE;
         }
 
@@ -753,9 +732,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     {
         if (!init_sprite_batch_data(&sprite_batch_datas[i]))
         {
-            user_run_info->on_clean_func(user_run_info->user_ptr);
             clean_game(&cleanup_data);
-
             return ZFW_FALSE;
         }
 
@@ -1047,7 +1024,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     }
     //
 
-    user_run_info->on_clean_func(user_run_info->user_ptr);
     clean_game(&cleanup_data);
 
     return ZFW_TRUE;

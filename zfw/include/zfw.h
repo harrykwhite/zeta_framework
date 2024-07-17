@@ -452,7 +452,6 @@ typedef struct
 
 typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_init_func_data_t *);
 typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_game_tick_func_data_t *);
-typedef void (*zfw_on_game_clean_func_t)(void *);
 typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_window_resize_func_data_t *);
 
 // Key game information to be defined by the user and used when the game runs.
@@ -465,7 +464,6 @@ typedef struct
 
     zfw_on_game_init_func_t on_init_func;
     zfw_on_game_tick_func_t on_tick_func;
-    zfw_on_game_clean_func_t on_clean_func;
     zfw_on_window_resize_func_t on_window_resize_func;
 
     void *user_ptr;
