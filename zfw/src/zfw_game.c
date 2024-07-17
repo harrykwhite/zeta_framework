@@ -436,7 +436,7 @@ static void draw_sprite_batches_of_layer(const int layer_index, zfw_sprite_batch
             continue;
         }
 
-        int tex_units[ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT] = { 0 };
+        int tex_units[ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT] = {0};
 
         for (int j = 0; j < ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT; j++)
         {
@@ -589,7 +589,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_log("Successfully initialized the random number generator.");
 
     // Create and zero-out the game cleanup data struct.
-    game_cleanup_data_t cleanup_data = { 0 };
+    game_cleanup_data_t cleanup_data = {0};
 
     // Initialize the main memory arena.
     if (!zfw_init_mem_arena(&zfw_g_main_mem_arena, ZFW_MAIN_MEM_ARENA_SIZE))
@@ -644,10 +644,10 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     glfwGetWindowPos(glfw_window, &window_state.pos.x, &window_state.pos.y);
     window_state.fullscreen = ZFW_FALSE;
 
-    zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen; // Whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state will not be updated until a specific point in the main loop.
+    zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen; // Represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state will not be updated until a specific point in the main loop.
 
     // Initialize the input state.
-    zfw_input_state_t input_state = { 0 };
+    zfw_input_state_t input_state = {0};
 
     input_state.gamepad_glfw_joystick_index = -1;
 
@@ -662,7 +662,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     }
 
     // Set GLFW callbacks.
-    glfw_window_callback_data_t glfw_window_callback_data = { &window_state, &input_state };
+    glfw_window_callback_data_t glfw_window_callback_data = {&window_state, &input_state};
     glfwSetWindowUserPointer(glfw_window, &glfw_window_callback_data);
 
     glfwSetWindowSizeCallback(glfw_window, glfw_window_size_callback);
@@ -685,7 +685,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_log("Successfully set up OpenGL function pointers!");
 
     // Initialize user asset data.
-    zfw_user_asset_data_t user_asset_data = { 0 };
+    zfw_user_asset_data_t user_asset_data = {0};
 
     {
         FILE *const assets_file_fs = fopen(ZFW_ASSETS_FILE_NAME, "rb");
@@ -752,7 +752,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     glfwShowWindow(glfw_window);
     //
 
-    zfw_input_state_t last_tick_input_state = { 0 }; // This is to be a copy of the input state at the point of the last tick.
+    zfw_input_state_t last_tick_input_state = {0}; // This is to be a copy of the input state at the point of the last tick.
     zfw_window_state_t window_prefullscreen_state; // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
 
     // Perform the restart loop.
@@ -760,7 +760,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     while (ZFW_TRUE)
     {
-        zfw_bool_t restart = ZFW_FALSE; // Whether or not to break out of the main loop and restart the game. This is modifiable by the user in their tick function through a pointer.
+        zfw_bool_t restart = ZFW_FALSE; // Represents whether or not to break out of the main loop and restart the game. This is modifiable by the user in their tick function through a pointer.
 
         // Set defaults for sprite batch datas and character batch data.
         zfw_log("Setting sprite batch and character batch data defaults...");
@@ -792,7 +792,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         }
         //
 
-        zfw_view_state_t view_state = { 0 };
+        zfw_view_state_t view_state = {0};
         view_state.scale = 1.0f;
 
         // Run the user-defined game initialization function.

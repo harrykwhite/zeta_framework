@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-const zfw_color_t zfw_g_builtin_color_white = { 1.0f, 1.0f, 1.0f, 1.0f };
-const zfw_color_t zfw_g_builtin_color_black = { 0.0f, 0.0f, 0.0f, 1.0f };
-const zfw_color_t zfw_g_builtin_color_red = { 1.0f, 0.0f, 0.0f, 1.0f };
-const zfw_color_t zfw_g_builtin_color_green = { 0.0f, 1.0f, 0.0f, 1.0f };
-const zfw_color_t zfw_g_builtin_color_blue = { 0.0f, 0.0f, 1.0f, 1.0f };
-const zfw_color_t zfw_g_builtin_color_yellow = { 1.0f, 1.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_k_color_white = { 1.0f, 1.0f, 1.0f, 1.0f };
+const zfw_color_t zfw_k_color_black = { 0.0f, 0.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_k_color_red = { 1.0f, 0.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_k_color_green = { 0.0f, 1.0f, 0.0f, 1.0f };
+const zfw_color_t zfw_k_color_blue = { 0.0f, 0.0f, 1.0f, 1.0f };
+const zfw_color_t zfw_k_color_yellow = { 1.0f, 1.0f, 0.0f, 1.0f };
 
 float zfw_get_clamped_num(const float num, const float min, const float max)
 {
