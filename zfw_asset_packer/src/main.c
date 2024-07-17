@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cjson/cJSON.h>
-#include <external/stb_image.h>
+#include <stb_image.h>
 #include <zfw_common.h>
 
 #include <ft2build.h>

@@ -1,8 +1,8 @@
 #ifndef __ZFW_H__
 #define __ZFW_H__
 
+#include <glad/glad.h>
 #include <zfw_common.h>
-#include "external/glad.h"
 
 ////// Memory Arena Sizes //////
 #define ZFW_MAIN_MEM_ARENA_SIZE ((1 << 20) * 100)
