@@ -10,7 +10,7 @@ const zfw_color_t zfw_k_color_green = { 0.0f, 1.0f, 0.0f, 1.0f };
 const zfw_color_t zfw_k_color_blue = { 0.0f, 0.0f, 1.0f, 1.0f };
 const zfw_color_t zfw_k_color_yellow = { 1.0f, 1.0f, 0.0f, 1.0f };
 
-float zfw_get_clamped_num(const float num, const float min, const float max)
+float zfw_get_clamped_float(const float num, const float min, const float max)
 {
     if (num < min)
     {

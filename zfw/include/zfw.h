@@ -472,7 +472,7 @@ extern const zfw_color_t zfw_k_color_blue;
 extern const zfw_color_t zfw_k_color_yellow;
 
 ////// Utility Functions //////
-float zfw_get_clamped_num(const float num, const float min, const float max);
+float zfw_get_clamped_float(const float num, const float min, const float max);
 int zfw_get_int_digit_count(const int i);
 
 zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
