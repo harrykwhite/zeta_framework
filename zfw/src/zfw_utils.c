@@ -10,29 +10,29 @@ const zfw_color_t zfw_k_color_green = { 0.0f, 1.0f, 0.0f, 1.0f };
 const zfw_color_t zfw_k_color_blue = { 0.0f, 0.0f, 1.0f, 1.0f };
 const zfw_color_t zfw_k_color_yellow = { 1.0f, 1.0f, 0.0f, 1.0f };
 
-float zfw_get_clamped_float(const float num, const float min, const float max)
+float zfw_get_clamped_float(const float n, const float min, const float max)
 {
-    if (num < min)
+    if (n < min)
     {
         return min;
     }
 
-    if (num > max)
+    if (n > max)
     {
         return max;
     }
 
-    return num;
+    return n;
 }
 
-int zfw_get_int_digit_count(const int i)
+int zfw_get_int_digit_count(const int n)
 {
-    if (i > -10 && i < 10)
+    if (n > -10 && n < 10)
     {
         return 1;
     }
 
-    return 1 + zfw_get_int_digit_count(i / 10);
+    return 1 + zfw_get_int_digit_count(n / 10);
 }
 
 zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count)

@@ -18,9 +18,9 @@ typedef struct
     zfw_builtin_shader_prog_data_t *builtin_shader_prog_data;
 
     zfw_sprite_batch_group_t *sprite_batch_groups;
-    int sprite_batch_datas_cleanup_count;
+    int sprite_batch_groups_cleanup_count;
 
-    zfw_char_batch_group_t *char_batch_data;
+    zfw_char_batch_group_t *char_batch_group;
 } game_cleanup_data_t;
 
 typedef struct
@@ -325,12 +325,12 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
     zfw_log("Cleaning up...");
 
     // Clean sprite and character batch data.
-    if (cleanup_data->char_batch_data)
+    if (cleanup_data->char_batch_group)
     {
-        clean_char_batch_group(cleanup_data->char_batch_data);
+        clean_char_batch_group(cleanup_data->char_batch_group);
     }
 
-    for (int i = 0; i < cleanup_data->sprite_batch_datas_cleanup_count; i++)
+    for (int i = 0; i < cleanup_data->sprite_batch_groups_cleanup_count; i++)
     {
         clean_sprite_batch_group(&cleanup_data->sprite_batch_groups[i]);
     }
@@ -536,16 +536,16 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             return ZFW_FALSE;
         }
 
-        cleanup_data.sprite_batch_datas_cleanup_count++;
+        cleanup_data.sprite_batch_groups_cleanup_count++;
     }
 
-    zfw_log("Successfully set up sprite batch datas!");
+    zfw_log("Successfully set up sprite batch groups!");
 
-    zfw_char_batch_group_t char_batch_data;
-    init_char_batch_group(&char_batch_data);
-    cleanup_data.char_batch_data = &char_batch_data;
+    zfw_char_batch_group_t char_batch_group;
+    init_char_batch_group(&char_batch_group);
+    cleanup_data.char_batch_group = &char_batch_group;
 
-    zfw_log("Successfully set up character batch data!");
+    zfw_log("Set up the character batch group!");
 
     zfw_view_state_t view_state;
 
@@ -569,7 +569,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     user_func_data.input_state_last = &last_tick_input_state;
     user_func_data.user_asset_data = &user_asset_data;
     user_func_data.sprite_batch_groups = sprite_batch_groups;
-    user_func_data.char_batch_data = &char_batch_data;
+    user_func_data.char_batch_group = &char_batch_group;
     user_func_data.view_state = &view_state;
 
     zfw_window_state_t window_prefullscreen_state; // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
@@ -578,9 +578,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     while (ZFW_TRUE)
     {
-        zfw_log("Setting sprite batch and character batch data defaults...");
+        zfw_log("Setting sprite group and character batch group defaults...");
         set_defaults_of_sprite_batch_groups(sprite_batch_groups);
-        set_char_batch_group_defaults(&char_batch_data);
+        set_char_batch_group_defaults(&char_batch_group);
 
         zfw_reset_view_state(&view_state);
 
@@ -733,7 +733,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
                     for (int i = 0; i < ZFW_RENDER_LAYER_LIMIT; i++)
                     {
-                        draw_sprite_batches_of_layer(i, &sprite_batch_groups[ZFW_SPRITE_BATCH_DATA_ID__VIEW], &user_asset_data.tex_data, &builtin_shader_prog_data);
+                        draw_sprite_batches_of_layer(i, &sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_ID__VIEW], &user_asset_data.tex_data, &builtin_shader_prog_data);
                     }
                 }
 
@@ -749,12 +749,12 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
                     glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.textured_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)proj.elems);
 
-                    draw_sprite_batches_of_layer(i, &sprite_batch_groups[ZFW_SPRITE_BATCH_DATA_ID__SCREEN], &user_asset_data.tex_data, &builtin_shader_prog_data);
+                    draw_sprite_batches_of_layer(i, &sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_ID__SCREEN], &user_asset_data.tex_data, &builtin_shader_prog_data);
 
                     // Draw layer character batches.
                     glUseProgram(builtin_shader_prog_data.char_rect_prog_gl_id);
                     glUniformMatrix4fv(glGetUniformLocation(builtin_shader_prog_data.char_rect_prog_gl_id, "u_proj"), 1, GL_FALSE, (GLfloat *)proj.elems);
-                    draw_char_batches_of_layer(i, &char_batch_data, &user_asset_data.font_data, &builtin_shader_prog_data);
+                    draw_char_batches_of_layer(i, &char_batch_group, &user_asset_data.font_data, &builtin_shader_prog_data);
                 }
                 //
 

@@ -242,16 +242,16 @@ typedef enum
 ////// Rendering Enums //////
 typedef enum
 {
-    ZFW_SPRITE_BATCH_DATA_ID__VIEW,
-    ZFW_SPRITE_BATCH_DATA_ID__SCREEN,
+    ZFW_SPRITE_BATCH_GROUP_ID__VIEW,
+    ZFW_SPRITE_BATCH_GROUP_ID__SCREEN,
 
     ZFW_SPRITE_BATCH_GROUP_ID_COUNT // This must be a power of 2!
-} zfw_sprite_batch_data_id_t;
+} zfw_sprite_batch_group_id_t;
 
 typedef enum
 {
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__ACTIVE,
-    ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_DATA_INDEX,
+    ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_GROUP_INDEX,
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__LAYER_INDEX,
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_INDEX,
     ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__SLOT_INDEX,
@@ -388,7 +388,7 @@ typedef struct
 typedef struct
 {
     zfw_bool_t active;
-    int batch_data_index;
+    int batch_group_index;
     int layer_index;
     int batch_index;
     int slot_index;
@@ -440,7 +440,7 @@ typedef struct
     const zfw_user_asset_data_t *user_asset_data;
      
     zfw_sprite_batch_group_t *sprite_batch_groups;
-    zfw_char_batch_group_t *char_batch_data;
+    zfw_char_batch_group_t *char_batch_group;
     zfw_view_state_t *view_state;
 } zfw_user_game_func_data_t;
 
@@ -472,8 +472,8 @@ extern const zfw_color_t zfw_k_color_blue;
 extern const zfw_color_t zfw_k_color_yellow;
 
 ////// Utility Functions //////
-float zfw_get_clamped_float(const float num, const float min, const float max);
-int zfw_get_int_digit_count(const int i);
+float zfw_get_clamped_float(const float n, const float min, const float max);
+int zfw_get_int_digit_count(const int n);
 
 zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
 void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, const int bit_active);
@@ -546,22 +546,22 @@ zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_t *
 void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert_shader_src, const char *const frag_shader_src);
 
 ////// Rendering Functions //////
-zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_datas, zfw_mem_arena_t *const mem_arena);
-void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_datas, zfw_mem_arena_t *const mem_arena); // This function will not set all the slot keys to be inactive for you, should not all slots be taken.
-zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_group_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
-zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_group_t *const batch_datas);
-zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_group_t *const batch_datas);
+zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_groups, zfw_mem_arena_t *const mem_arena);
+void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_groups, zfw_mem_arena_t *const mem_arena); // This function will not set all the slot keys to be inactive for you, should not all slots be taken.
+zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_group_t *const batch_groups, const zfw_user_tex_data_t *const user_tex_data);
+zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_group_t *const batch_groups);
+zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_group_t *const batch_groups);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_init_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 
-zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_group_t *const batch_data, zfw_mem_arena_t *const mem_arena);
-zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_group_t *const batch_data, const zfw_user_font_data_t *const user_font_data); // IDEA: Have an alternative, faster function to be used when no alignment is needed.
-zfw_bool_t zfw_set_render_layer_char_batch_user_font_index(const zfw_char_batch_key_t key, const int user_font_index, zfw_char_batch_group_t *const batch_data);
-zfw_bool_t zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_group_t *const batch_data);
-zfw_bool_t zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key, const zfw_vec_2d_t scale, zfw_char_batch_group_t *const batch_data);
-zfw_bool_t zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_group_t *const batch_data);
-zfw_bool_t zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_data);
-zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_data);
+zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_group_t *const batch_group, zfw_mem_arena_t *const mem_arena);
+zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_group_t *const batch_group, const zfw_user_font_data_t *const user_font_data); // IDEA: Have an alternative, faster function to be used when no alignment is needed.
+zfw_bool_t zfw_set_render_layer_char_batch_user_font_index(const zfw_char_batch_key_t key, const int user_font_index, zfw_char_batch_group_t *const batch_group);
+zfw_bool_t zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_group_t *const batch_group);
+zfw_bool_t zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key, const zfw_vec_2d_t scale, zfw_char_batch_group_t *const batch_group);
+zfw_bool_t zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_group_t *const batch_group);
+zfw_bool_t zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_group);
+zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_group);
 zfw_char_batch_key_t zfw_create_char_batch_key(const zfw_char_batch_key_elems_t *const key_elems);
 void zfw_init_char_batch_key_elems(const zfw_sprite_batch_slot_key_t key, zfw_char_batch_key_elems_t *const key_elems);
 
