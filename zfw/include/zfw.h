@@ -1,16 +1,17 @@
 #ifndef __ZFW_H__
 #define __ZFW_H__
 
+#include <stdio.h>
 #include <glad/glad.h>
 #include <zfw_common.h>
 
 ////// Memory Arena Sizes //////
-#define ZFW_MAIN_MEM_ARENA_SIZE ((1 << 20) * 100)
-#define ZFW_TICK_MEM_ARENA_SIZE ((1 << 10) * 10)
+#define ZFW_MEM_ARENA_SIZE ((1 << 20) * 100)
 
 ////// Built-in Shader Sources //////
 #define ZFW_BUILTIN_TEXTURED_RECT_VERT_SHADER_SRC \
     "#version 430 core\n" \
+    "\n" \
     "layout (location = 0) in vec2 a_vert;\n" \
     "layout (location = 1) in vec2 a_pos;\n" \
     "layout (location = 2) in vec2 a_size;\n" \
@@ -18,22 +19,28 @@
     "layout (location = 4) in float a_tex_index;\n" \
     "layout (location = 5) in vec2 a_tex_coord;\n" \
     "layout (location = 6) in vec4 a_blend;\n" \
+    "\n" \
     "out flat int v_tex_index;\n" \
     "out vec2 v_tex_coord;\n" \
     "out vec4 v_blend;\n" \
+    "\n" \
     "uniform mat4 u_view;\n" \
     "uniform mat4 u_proj;\n" \
+    "\n" \
     "void main()\n" \
     "{\n" \
     "    float rot_cos = cos(a_rot);\n" \
     "    float rot_sin = sin(a_rot);\n" \
+    "\n" \
     "    mat4 model = mat4(\n" \
     "        vec4(a_size.x * rot_cos, a_size.x * rot_sin, 0.0f, 0.0f),\n" \
     "        vec4(a_size.y * -rot_sin, a_size.y * rot_cos, 0.0f, 0.0f),\n" \
     "        vec4(0.0f, 0.0f, 1.0f, 0.0f),\n" \
     "        vec4(a_pos.x, a_pos.y, 0.0f, 1.0f)\n" \
     "    );\n" \
+    "\n" \
     "    gl_Position = u_proj * u_view * model * vec4(a_vert, 0.0f, 1.0f);\n" \
+    "\n" \
     "    v_tex_index = int(a_tex_index);\n" \
     "    v_tex_coord = a_tex_coord;\n" \
     "    v_blend = a_blend;\n" \
@@ -41,11 +48,15 @@
 
 #define ZFW_BUILTIN_TEXTURED_RECT_FRAG_SHADER_SRC \
     "#version 430 core\n" \
+    "\n" \
     "in flat int v_tex_index;\n" \
     "in vec2 v_tex_coord;\n" \
     "in vec4 v_blend;\n" \
+    "\n" \
     "out vec4 o_frag_color;\n" \
+    "\n" \
     "uniform sampler2D u_textures[32];\n" \
+    "\n" \
     "void main()\n" \
     "{\n" \
     "    vec4 tex_color = texture(u_textures[v_tex_index], v_tex_coord);\n" \
@@ -56,12 +67,16 @@
 
 #define ZFW_BUILTIN_CHAR_RECT_VERT_SHADER_SRC \
     "#version 430 core\n" \
+    "\n" \
     "layout (location = 0) in vec2 a_vert;\n" \
     "layout (location = 1) in vec2 a_tex_coord;\n" \
+    "\n" \
     "out vec2 v_tex_coord;\n" \
+    "\n" \
     "uniform vec2 u_pos;\n" \
     "uniform vec2 u_scale;\n" \
     "uniform mat4 u_proj;\n" \
+    "\n" \
     "void main()\n" \
     "{\n" \
     "    mat4 model = mat4(\n" \
@@ -71,15 +86,20 @@
     "        vec4(u_pos.x, u_pos.y, 0.0f, 1.0f)\n" \
     "    );\n" \
     "    gl_Position = u_proj * model * vec4(a_vert, 0.0f, 1.0f);\n" \
+    "\n" \
     "    v_tex_coord = a_tex_coord;\n" \
     "}\n"
 
 #define ZFW_BUILTIN_CHAR_RECT_FRAG_SHADER_SRC \
     "#version 430 core\n" \
+    "\n" \
     "in vec2 v_tex_coord;\n" \
+    "\n" \
     "out vec4 o_frag_color;\n" \
+    "\n" \
     "uniform vec4 u_blend;\n" \
     "uniform sampler2D u_tex;\n" \
+    "\n" \
     "void main()\n" \
     "{\n" \
     "    vec4 tex_color = texture(u_tex, v_tex_coord);\n" \
@@ -89,9 +109,7 @@
 #define ZFW_BUILTIN_CHAR_RECT_SHADER_PROG_VERT_COUNT 4
 
 ////// Rendering Limits //////
-
 // These must all be powers of 2!
-
 #define ZFW_RENDER_LAYER_LIMIT (1 << 5)
 
 #define ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT ZFW_SIZE_IN_BITS(zfw_render_layer_sprite_batch_activity_bits_t)
@@ -227,7 +245,7 @@ typedef enum
     ZFW_SPRITE_BATCH_DATA_ID__VIEW,
     ZFW_SPRITE_BATCH_DATA_ID__SCREEN,
 
-    ZFW_SPRITE_BATCH_DATA_ID_COUNT // This must be a power of 2!
+    ZFW_SPRITE_BATCH_GROUP_ID_COUNT // This must be a power of 2!
 } zfw_sprite_batch_data_id_t;
 
 typedef enum
@@ -365,7 +383,7 @@ typedef struct
     zfw_sprite_batch_tex_unit_t tex_units[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT][ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT];
 
     zfw_bitset_t slot_activity_bitset;
-} zfw_sprite_batch_data_t;
+} zfw_sprite_batch_group_t;
 
 typedef struct
 {
@@ -390,7 +408,7 @@ typedef struct
     zfw_vec_2d_t positions[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
     zfw_vec_2d_t scales[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
     zfw_color_t blends[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
-} zfw_char_batch_data_t;
+} zfw_char_batch_group_t;
 
 typedef struct
 {
@@ -406,23 +424,11 @@ typedef struct
 } zfw_view_state_t;
 
 ////// Game Structs and Function Pointer Type Definitions //////
-
-// Game state data to be provided to the user in their defined game initialization function.
+// Game state data to be provided to the user in their defined game functions.
 typedef struct
 {
-    zfw_vec_2d_i_t window_size;
-    zfw_bool_t *window_fullscreen;
-
-    const zfw_user_asset_data_t *user_asset_data;
-
-    zfw_sprite_batch_data_t *sprite_batch_datas;
-    zfw_char_batch_data_t *char_batch_data;
-    zfw_view_state_t *view_state;
-} zfw_user_game_init_func_data_t;
-
-// Game state data to be provided to the user in their defined game tick function.
-typedef struct
-{
+    zfw_mem_arena_t *mem_arena;
+    
     zfw_bool_t *restart;
 
     zfw_vec_2d_i_t window_size;
@@ -432,27 +438,15 @@ typedef struct
     const zfw_input_state_t *input_state_last;
 
     const zfw_user_asset_data_t *user_asset_data;
-
-    zfw_sprite_batch_data_t *sprite_batch_datas;
-    zfw_char_batch_data_t *char_batch_data;
+     
+    zfw_sprite_batch_group_t *sprite_batch_groups;
+    zfw_char_batch_group_t *char_batch_data;
     zfw_view_state_t *view_state;
-} zfw_user_game_tick_func_data_t;
+} zfw_user_game_func_data_t;
 
-// Game state data to be provided to the user in their defined window resize function.
-typedef struct
-{
-    zfw_vec_2d_i_t window_size;
-
-    const zfw_user_asset_data_t *user_asset_data;
-
-    zfw_sprite_batch_data_t *sprite_batch_datas;
-    zfw_char_batch_data_t *char_batch_data;
-    zfw_view_state_t *view_state;
-} zfw_user_window_resize_func_data_t;
-
-typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_init_func_data_t *);
-typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_game_tick_func_data_t *);
-typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_window_resize_func_data_t *);
+typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_func_data_t *);
+typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_game_func_data_t *);
+typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_game_func_data_t *);
 
 // Key game information to be defined by the user and used when the game runs.
 typedef struct
@@ -469,11 +463,7 @@ typedef struct
     void *user_ptr;
 } zfw_user_game_run_info_t;
 
-////// Memory Arenas //////
-extern zfw_mem_arena_t zfw_g_main_mem_arena;
-extern zfw_mem_arena_t zfw_g_tick_mem_arena;
-
-////// Built-in Colors //////
+////// Color Constants //////
 extern const zfw_color_t zfw_k_color_white;
 extern const zfw_color_t zfw_k_color_black;
 extern const zfw_color_t zfw_k_color_red;
@@ -506,41 +496,76 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info);
 ////// Input Functions //////
 void zfw_reset_gamepad_state(zfw_input_state_t *const input_state);
 
-zfw_bool_t zfw_is_key_down(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state);
-zfw_bool_t zfw_is_key_pressed(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last);
-zfw_bool_t zfw_is_key_released(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last);
+inline zfw_bool_t zfw_is_key_down(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state)
+{
+    return (input_state->keys_down_bits & ((zfw_keys_down_bits_t)1 << key_code)) != 0;
+}
 
-zfw_bool_t zfw_is_mouse_button_down(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state);
-zfw_bool_t zfw_is_mouse_button_pressed(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last);
-zfw_bool_t zfw_is_mouse_button_released(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last);
+inline zfw_bool_t zfw_is_key_pressed(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
+{
+    return zfw_is_key_down(key_code, input_state) && !zfw_is_key_down(key_code, input_state_last);
+}
 
-zfw_bool_t zfw_is_gamepad_button_down(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state);
-zfw_bool_t zfw_is_gamepad_button_pressed(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last);
-zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last);
+inline zfw_bool_t zfw_is_key_released(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
+{
+    return !zfw_is_key_down(key_code, input_state) && zfw_is_key_down(key_code, input_state_last);
+}
+
+inline zfw_bool_t zfw_is_mouse_button_down(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state)
+{
+    return (input_state->mouse_buttons_down_bits & ((zfw_mouse_buttons_down_bits_t)1 << button_code)) != 0;
+}
+
+inline zfw_bool_t zfw_is_mouse_button_pressed(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
+{
+    return zfw_is_mouse_button_down(button_code, input_state) && !zfw_is_mouse_button_down(button_code, input_state_last);
+}
+
+inline zfw_bool_t zfw_is_mouse_button_released(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
+{
+    return !zfw_is_mouse_button_down(button_code, input_state) && zfw_is_mouse_button_down(button_code, input_state_last);
+}
+
+inline zfw_bool_t zfw_is_gamepad_button_down(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state)
+{
+    return (input_state->gamepad_buttons_down_bits & ((zfw_gamepad_buttons_down_bits_t)1 << button_code)) != 0;
+}
+
+inline zfw_bool_t zfw_is_gamepad_button_pressed(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
+{
+    return zfw_is_gamepad_button_down(button_code, input_state) && !zfw_is_gamepad_button_down(button_code, input_state_last);
+}
+
+inline zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
+{
+    return !zfw_is_gamepad_button_down(button_code, input_state) && zfw_is_gamepad_button_down(button_code, input_state_last);
+}
 
 ////// Asset Functions //////
+zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_t *const user_asset_data, FILE *const assets_file_fs, zfw_mem_arena_t *const mem_arena);
 void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert_shader_src, const char *const frag_shader_src);
 
 ////// Rendering Functions //////
-zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas);
-void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_data_t *const batch_datas); // This function will not set all the slot keys to be inactive for you, should not all slots be taken.
-zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_data_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
-zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_data_t *const batch_datas);
-zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_data_t *const batch_datas);
+zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_datas, zfw_mem_arena_t *const mem_arena);
+void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_data_id_t batch_data_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_datas, zfw_mem_arena_t *const mem_arena); // This function will not set all the slot keys to be inactive for you, should not all slots be taken.
+zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_group_t *const batch_datas, const zfw_user_tex_data_t *const user_tex_data);
+zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_group_t *const batch_datas);
+zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_group_t *const batch_datas);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_init_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 
-zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_data_t *const batch_data, const zfw_user_font_data_t *const user_font_data); // IDEA: Have an alternative, faster function to be used when no alignment is needed.
-zfw_bool_t zfw_set_render_layer_char_batch_user_font_index(const zfw_char_batch_key_t key, const int user_font_index, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key, const zfw_vec_2d_t scale, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_data_t *const batch_data);
-zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_data_t *const batch_data);
+zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_group_t *const batch_data, zfw_mem_arena_t *const mem_arena);
+zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_group_t *const batch_data, const zfw_user_font_data_t *const user_font_data); // IDEA: Have an alternative, faster function to be used when no alignment is needed.
+zfw_bool_t zfw_set_render_layer_char_batch_user_font_index(const zfw_char_batch_key_t key, const int user_font_index, zfw_char_batch_group_t *const batch_data);
+zfw_bool_t zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_group_t *const batch_data);
+zfw_bool_t zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key, const zfw_vec_2d_t scale, zfw_char_batch_group_t *const batch_data);
+zfw_bool_t zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_group_t *const batch_data);
+zfw_bool_t zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_data);
+zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_data);
 zfw_char_batch_key_t zfw_create_char_batch_key(const zfw_char_batch_key_elems_t *const key_elems);
 void zfw_init_char_batch_key_elems(const zfw_sprite_batch_slot_key_t key, zfw_char_batch_key_elems_t *const key_elems);
 
+void zfw_reset_view_state(zfw_view_state_t *const view_state);
 zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state);
 zfw_vec_2d_t zfw_get_screen_to_view_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state);
 /////////////////////////////////
