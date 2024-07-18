@@ -30,7 +30,7 @@
     "void main()\n" \
     "{\n" \
     "    float rot_cos = cos(a_rot);\n" \
-    "    float rot_sin = sin(a_rot);\n" \
+    "    float rot_sin = -sin(a_rot);\n" \
     "\n" \
     "    mat4 model = mat4(\n" \
     "        vec4(a_size.x * rot_cos, a_size.x * rot_sin, 0.0f, 0.0f),\n" \
