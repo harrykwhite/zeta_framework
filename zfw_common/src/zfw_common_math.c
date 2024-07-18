@@ -64,7 +64,7 @@ float zfw_get_dist_i(const zfw_vec_2d_i_t vec_a, const zfw_vec_2d_i_t vec_b)
 
 float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
 {
-    return atan2f(vec_b.y - vec_a.y, vec_b.x - vec_a.x);
+    return atan2f(-(vec_b.y - vec_a.y), vec_b.x - vec_a.x);
 }
 
 void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height)
