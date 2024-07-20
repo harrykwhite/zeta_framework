@@ -119,7 +119,7 @@ static zfw_bool_t pack_textures(cJSON *const c_json, char src_asset_file_path_bu
             return ZFW_FALSE;
         }
 
-        zfw_vec_2d_i_t tex_size;
+        zfw_vec_2d_int_t tex_size;
         stbi_uc *const tex_px_data = stbi_load(src_asset_file_path_buf, &tex_size.x, &tex_size.y, NULL, ZFW_TEX_CHANNEL_COUNT);
 
         if (!tex_px_data)
@@ -214,70 +214,70 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
     const int cj_fonts_len = cJSON_GetArraySize(cj_fonts);
 
     // Set up buffers for font data.
-    zfw_mem_arena_t mem_arena;
-    zfw_init_mem_arena(&mem_arena, (1 << 20) * 10);
+    zfw_mem_arena_t main_mem_arena;
+    zfw_init_mem_arena(&main_mem_arena, (1 << 20) * 10);
 
-    int *line_heights = zfw_mem_arena_alloc(&mem_arena, sizeof(*line_heights) * cj_fonts_len);
+    int *line_heights = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*line_heights) * cj_fonts_len);
 
     if (!line_heights)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    font_char_hor_offs_t *char_hor_offsets = zfw_mem_arena_alloc(&mem_arena, sizeof(*char_hor_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_hor_offs_t *char_hor_offsets = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_hor_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_hor_offsets)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    font_char_vert_offs_t *char_vert_offsets = zfw_mem_arena_alloc(&mem_arena, sizeof(*char_vert_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_vert_offs_t *char_vert_offsets = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_vert_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_vert_offsets)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    font_char_hor_advance_t *chars_hor_advances = zfw_mem_arena_alloc(&mem_arena, sizeof(*chars_hor_advances) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_hor_advance_t *chars_hor_advances = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*chars_hor_advances) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!chars_hor_advances)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    font_char_src_rect_t *char_src_rects = zfw_mem_arena_alloc(&mem_arena, sizeof(*char_src_rects) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_src_rect_t *char_src_rects = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_src_rects) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_src_rects)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    font_char_kerning_t *char_kernings = zfw_mem_arena_alloc(&mem_arena, sizeof(*char_kernings) * ZFW_FONT_CHAR_RANGE_SIZE * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_kerning_t *char_kernings = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_kernings) * ZFW_FONT_CHAR_RANGE_SIZE * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_kernings)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    zfw_vec_2d_i_t *tex_sizes = zfw_mem_arena_alloc(&mem_arena, sizeof(*tex_sizes) * cj_fonts_len);
+    zfw_vec_2d_int_t *tex_sizes = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*tex_sizes) * cj_fonts_len);
 
     if (!tex_sizes)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
-    unsigned char **tex_px_datas = zfw_mem_arena_alloc(&mem_arena, sizeof(*tex_px_datas) * cj_fonts_len);
+    unsigned char **tex_px_datas = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*tex_px_datas) * cj_fonts_len);
 
     if (!tex_px_datas)
     {
-        zfw_clean_mem_arena(&mem_arena);
+        zfw_clean_mem_arena(&main_mem_arena);
         return ZFW_FALSE;
     }
 
@@ -302,7 +302,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
 
         if (!cJSON_IsString(cj_rfp) || !cJSON_IsNumber(cj_pt_size))
         {
-            zfw_clean_mem_arena(&mem_arena);
+            zfw_clean_mem_arena(&main_mem_arena);
             return ZFW_FALSE;
         }
 
@@ -311,7 +311,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         if (src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE - 1])
         {
             zfw_log_error("The font relative file path of \"%s\" exceeds the size limit of %d characters!", cj_rfp->valuestring, SRC_ASSET_FILE_PATH_BUF_SIZE - 1 - src_asset_file_path_start_len);
-            zfw_clean_mem_arena(&mem_arena);
+            zfw_clean_mem_arena(&main_mem_arena);
             return ZFW_FALSE;
         }
 
@@ -320,7 +320,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             zfw_log_error("Font point sizes must be between %d and %d inclusive!", FONT_PT_SIZE_MIN, FONT_PT_SIZE_MAX);
 
             FT_Done_FreeType(ft_lib);
-            zfw_clean_mem_arena(&mem_arena);
+            zfw_clean_mem_arena(&main_mem_arena);
 
             return ZFW_FALSE;
         }
@@ -333,7 +333,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             zfw_log_error("Failed to set up the FreeType face object for font with relative path \"%s\".", cj_rfp->valuestring);
 
             FT_Done_FreeType(ft_lib);
-            zfw_clean_mem_arena(&mem_arena);
+            zfw_clean_mem_arena(&main_mem_arena);
 
             return ZFW_FALSE;
         }
@@ -365,7 +365,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
 
         // Initialize the pixel data of the font texture by setting all the pixels to be transparent white.
         const int tex_px_data_size = tex_sizes[i].x * tex_sizes[i].y * ZFW_FONT_TEX_CHANNEL_COUNT;
-        tex_px_datas[i] = zfw_mem_arena_alloc(&mem_arena, tex_px_data_size);
+        tex_px_datas[i] = zfw_mem_arena_alloc(&main_mem_arena, tex_px_data_size);
 
         if (!tex_px_datas[i])
         {
@@ -469,7 +469,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
     }
     //
 
-    zfw_clean_mem_arena(&mem_arena);
+    zfw_clean_mem_arena(&main_mem_arena);
 
     return ZFW_TRUE;
 }

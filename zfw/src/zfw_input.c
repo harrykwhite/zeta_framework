@@ -1,4 +1,4 @@
-#include <zfw.h>
+#include <zfw_input.h>
 
 #include <string.h>
 

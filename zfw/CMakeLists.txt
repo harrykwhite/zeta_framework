@@ -12,7 +12,11 @@ add_library(zfw STATIC
     src/zfw_utils.c
     ${PARENT_SOURCE_DIR}/vendor/glad/src/glad.c
 
-    include/zfw.h
+    include/zfw_game.h
+    include/zfw_input.h
+    include/zfw_assets.h
+    include/zfw_rendering.h
+    include/zfw_utils.h
     ${PARENT_SOURCE_DIR}/vendor/glad/include/glad/glad.h
     ${PARENT_SOURCE_DIR}/vendor/glad/include/KHR/khrplatform.h
 )

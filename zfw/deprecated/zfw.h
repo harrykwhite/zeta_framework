@@ -301,8 +301,8 @@ typedef struct
 ////// Window and Input Structs //////
 typedef struct
 {
-    zfw_vec_2d_i_t size;
-    zfw_vec_2d_i_t pos;
+    zfw_vec_2d_int_t size;
+    zfw_vec_2d_int_t pos;
     zfw_bool_t fullscreen;
 } zfw_window_state_t;
 
@@ -324,7 +324,7 @@ typedef struct
 {
     int tex_count;
     GLuint *gl_ids;
-    zfw_vec_2d_i_t *sizes;
+    zfw_vec_2d_int_t *sizes;
 } zfw_user_tex_data_t;
 
 typedef struct
@@ -348,8 +348,8 @@ typedef struct
 
     font_char_kerning_t *chars_kernings;
 
-    zfw_vec_2d_i_t *tex_sizes;
-    GLuint *tex_glids;
+    zfw_vec_2d_int_t *tex_sizes;
+    GLuint *tex_gl_ids;
 } zfw_user_font_data_t;
 
 typedef struct
@@ -376,14 +376,22 @@ typedef struct
 {
     zfw_render_layer_sprite_batch_activity_bits_t batch_activity_bits[ZFW_RENDER_LAYER_LIMIT];
 
-    GLuint vert_array_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
-    GLuint vert_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
-    GLuint elem_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
+    GLuint *vert_array_gl_ids;
+    GLuint *vert_buf_gl_ids;
+    GLuint *elem_buf_gl_ids;
+    //GLuint *vert_array_gl_ids[ZFW_RENDER_LAYER_LIMIT];
+    //GLuint *vert_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT];
+    //GLuint *elem_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT];
 
-    zfw_sprite_batch_tex_unit_t tex_units[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT][ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT];
+    zfw_sprite_batch_tex_unit_t *tex_units[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT];
 
-    zfw_bitset_t slot_activity_bitset;
+    zfw_bitset_t slot_activity;
 } zfw_sprite_batch_group_t;
+
+inline GLuint get_sprite_batch_group_vert_array_gl_id(const zfw_sprite_batch_group_t *const batch_group, const int layer_index, const int batch_index)
+{
+    return batch_group->vert_array_gl_ids[(layer_index * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT) + batch_index];
+}
 
 typedef struct
 {
@@ -400,14 +408,14 @@ typedef struct
     zfw_render_layer_char_batch_bits_t batch_init_bits[ZFW_RENDER_LAYER_LIMIT]; // Each bit represents whether the corresponding batch has been initialized.
     zfw_render_layer_char_batch_bits_t batch_activity_bits[ZFW_RENDER_LAYER_LIMIT];
 
-    GLuint vert_array_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
-    GLuint vert_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
-    GLuint elem_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
+    GLuint *vert_array_gl_ids[ZFW_RENDER_LAYER_LIMIT];
+    GLuint *vert_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT];
+    GLuint *elem_buf_gl_ids[ZFW_RENDER_LAYER_LIMIT];
 
-    int user_font_indexes[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
-    zfw_vec_2d_t positions[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
-    zfw_vec_2d_t scales[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
-    zfw_color_t blends[ZFW_RENDER_LAYER_LIMIT][ZFW_RENDER_LAYER_CHAR_BATCH_LIMIT];
+    int *user_font_indexes[ZFW_RENDER_LAYER_LIMIT];
+    zfw_vec_2d_t *positions[ZFW_RENDER_LAYER_LIMIT];
+    zfw_vec_2d_t *scales[ZFW_RENDER_LAYER_LIMIT];
+    zfw_color_t *blends[ZFW_RENDER_LAYER_LIMIT];
 } zfw_char_batch_group_t;
 
 typedef struct
@@ -427,11 +435,11 @@ typedef struct
 // Game state data to be provided to the user in their defined game functions.
 typedef struct
 {
-    zfw_mem_arena_t *mem_arena;
+    zfw_mem_arena_t *main_mem_arena;
     
     zfw_bool_t *restart;
 
-    zfw_vec_2d_i_t window_size;
+    zfw_vec_2d_int_t window_size;
     zfw_bool_t *window_fullscreen;
 
     const zfw_input_state_t *input_state;
@@ -442,16 +450,16 @@ typedef struct
     zfw_sprite_batch_group_t *sprite_batch_groups;
     zfw_char_batch_group_t *char_batch_group;
     zfw_view_state_t *view_state;
-} zfw_user_game_func_data_t;
+} zfw_user_func_data_t;
 
-typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_game_func_data_t *);
-typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_game_func_data_t *);
-typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_game_func_data_t *);
+typedef void (*zfw_on_game_init_func_t)(void *, zfw_user_func_data_t *);
+typedef void (*zfw_on_game_tick_func_t)(void *, zfw_user_func_data_t *);
+typedef void (*zfw_on_window_resize_func_t)(void *, zfw_user_func_data_t *);
 
 // Key game information to be defined by the user and used when the game runs.
 typedef struct
 {
-    zfw_vec_2d_i_t init_window_size;
+    zfw_vec_2d_int_t init_window_size;
     const char *init_window_title;
     zfw_bool_t init_window_fullscreen;
     zfw_bool_t window_resizable;
@@ -475,10 +483,9 @@ extern const zfw_color_t zfw_k_color_yellow;
 float zfw_get_clamped_float(const float n, const float min, const float max);
 int zfw_get_int_digit_count(const int n);
 
-zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count);
+zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int byte_count, zfw_mem_arena_t *const main_mem_arena);
 void zfw_toggle_bitset_bit(zfw_bitset_t *const bitset, const int bit_index, const int bit_active);
 void zfw_clear_bitset(zfw_bitset_t *const bitset);
-void zfw_clean_bitset(zfw_bitset_t *const bitset);
 int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset);
 int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_index, const int end_bit_index);
 zfw_bool_t zfw_is_bitset_bit_active(const zfw_bitset_t *const bitset, const int bit_index);
@@ -542,19 +549,32 @@ inline zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t
 }
 
 ////// Asset Functions //////
-zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_t *const user_asset_data, FILE *const assets_file_fs, zfw_mem_arena_t *const mem_arena);
+zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_asset_data_t *const user_asset_data, FILE *const assets_file_fs, zfw_mem_arena_t *const main_mem_arena);
 void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert_shader_src, const char *const frag_shader_src);
 
 ////// Rendering Functions //////
-zfw_sprite_batch_slot_key_t zfw_take_slot_from_render_layer_sprite_batch(const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_groups, zfw_mem_arena_t *const mem_arena);
-void zfw_take_multiple_slots_from_render_layer_sprite_batch(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_groups, zfw_mem_arena_t *const mem_arena); // This function will not set all the slot keys to be inactive for you, should not all slots be taken.
-zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_group_t *const batch_groups, const zfw_user_tex_data_t *const user_tex_data);
-zfw_bool_t zfw_clear_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_group_t *const batch_groups);
-zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_group_t *const batch_groups);
+
+void zfw_set_sprite_batch_group_defaults(zfw_sprite_batch_group_t *const batch_group);
+void zfw_clean_sprite_batch_group(zfw_sprite_batch_group_t *const batch_group);
+
+
+void zfw_set_char_batch_group_defaults(zfw_char_batch_group_t *const batch_group);
+void zfw_draw_char_batches_of_layer(const int layer_index, zfw_char_batch_group_t *const batch_group, const zfw_user_font_data_t *const user_font_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data);
+void zfw_clean_char_batch_group(zfw_char_batch_group_t *const batch_group);
+
+
+
+
+zfw_sprite_batch_slot_key_t zfw_take_sprite_batch_slot(const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_groups, zfw_mem_arena_t *const main_mem_arena);
+void zfw_take_multiple_sprite_batch_slots(zfw_sprite_batch_slot_key_t *const slot_keys, const int slot_key_count, const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t *const batch_groups, zfw_mem_arena_t *const main_mem_arena); // This function will not set all the slot keys to be inactive for you, should not all slots be taken.
+zfw_bool_t zfw_write_to_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_vec_2d_t pos, const float rot, const zfw_vec_2d_t scale, const zfw_vec_2d_t origin, const zfw_rect_t *const src_rect, const zfw_color_t *const blend, const zfw_sprite_batch_group_t *const batch_groups, const zfw_user_tex_data_t *const user_tex_data);
+zfw_bool_t zfw_clear_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, const zfw_sprite_batch_group_t *const batch_groups);
+zfw_bool_t zfw_free_sprite_batch_slot(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_group_t *const batch_groups);
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 void zfw_init_sprite_batch_slot_key_elems(const zfw_sprite_batch_slot_key_t slot_key, zfw_sprite_batch_slot_key_elems_t *const slot_key_elems);
 
-zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_group_t *const batch_group, zfw_mem_arena_t *const mem_arena);
+void init_char_batch_group(zfw_char_batch_group_t *const batch_group, zfw_mem_arena_t *const main_mem_arena);
+zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_group_t *const batch_group, zfw_mem_arena_t *const main_mem_arena);
 zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_group_t *const batch_group, const zfw_user_font_data_t *const user_font_data); // IDEA: Have an alternative, faster function to be used when no alignment is needed.
 zfw_bool_t zfw_set_render_layer_char_batch_user_font_index(const zfw_char_batch_key_t key, const int user_font_index, zfw_char_batch_group_t *const batch_group);
 zfw_bool_t zfw_set_render_layer_char_batch_pos(const zfw_char_batch_key_t key, const zfw_vec_2d_t pos, zfw_char_batch_group_t *const batch_group);
@@ -566,8 +586,15 @@ zfw_char_batch_key_t zfw_create_char_batch_key(const zfw_char_batch_key_elems_t 
 void zfw_init_char_batch_key_elems(const zfw_sprite_batch_slot_key_t key, zfw_char_batch_key_elems_t *const key_elems);
 
 void zfw_reset_view_state(zfw_view_state_t *const view_state);
-zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state);
-zfw_vec_2d_t zfw_get_screen_to_view_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state);
-/////////////////////////////////
+
+inline zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)
+{
+    return zfw_get_vec_2d_scaled(zfw_create_vec_2d(pos.x - view_state->pos.x, pos.y - view_state->pos.y), view_state->scale);
+}
+
+inline zfw_vec_2d_t zfw_get_screen_to_view_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)
+{
+    return zfw_get_vec_2d_sum(view_state->pos, zfw_get_vec_2d_scaled(pos, 1.0f / view_state->scale));
+}
 
 #endif

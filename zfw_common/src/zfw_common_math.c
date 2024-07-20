@@ -9,9 +9,9 @@ zfw_vec_2d_t zfw_create_vec_2d(const float x, const float y)
     return vec;
 }
 
-zfw_vec_2d_i_t zfw_create_vec_2d_i(const int x, const int y)
+zfw_vec_2d_int_t zfw_create_vec_2d_i(const int x, const int y)
 {
-    const zfw_vec_2d_i_t vec = { x, y };
+    const zfw_vec_2d_int_t vec = { x, y };
     return vec;
 }
 
@@ -25,7 +25,7 @@ zfw_vec_2d_t zfw_get_vec_2d_scaled(const zfw_vec_2d_t vec, const float scalar)
     return zfw_create_vec_2d(vec.x * scalar, vec.y * scalar);
 }
 
-zfw_vec_2d_i_t zfw_get_vec_2d_i_scaled(const zfw_vec_2d_i_t vec, const float scalar)
+zfw_vec_2d_int_t zfw_get_vec_2d_i_scaled(const zfw_vec_2d_int_t vec, const float scalar)
 {
     return zfw_create_vec_2d_i((int)(vec.x * scalar), (int)(vec.y * scalar));
 }
@@ -54,7 +54,7 @@ float zfw_get_dist(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
     return sqrtf((diff_hor * diff_hor) + (diff_ver * diff_ver));
 }
 
-float zfw_get_dist_i(const zfw_vec_2d_i_t vec_a, const zfw_vec_2d_i_t vec_b)
+float zfw_get_dist_i(const zfw_vec_2d_int_t vec_a, const zfw_vec_2d_int_t vec_b)
 {
     const int diff_hor = vec_b.x - vec_a.x;
     const int diff_ver = vec_b.y - vec_a.y;
@@ -83,7 +83,7 @@ void zfw_init_rect_f(zfw_rect_f_t *const rect_f, const float x, const float y, c
     rect_f->height = height;
 }
 
-zfw_vec_2d_i_t zfw_get_rect_pos(zfw_rect_t *const rect)
+zfw_vec_2d_int_t zfw_get_rect_pos(zfw_rect_t *const rect)
 {
     return zfw_create_vec_2d_i(rect->x, rect->y);
 }
@@ -93,7 +93,7 @@ zfw_vec_2d_t zfw_get_rect_f_pos(zfw_rect_f_t *const rect_f)
     return zfw_create_vec_2d(rect_f->x, rect_f->y);
 }
 
-zfw_vec_2d_i_t zfw_get_rect_size(zfw_rect_t *const rect)
+zfw_vec_2d_int_t zfw_get_rect_size(zfw_rect_t *const rect)
 {
     return zfw_create_vec_2d_i(rect->width, rect->height);
 }
