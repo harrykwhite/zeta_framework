@@ -55,12 +55,12 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
     }
 
     // Clean user asset data.
-    if (cleanup_data->user_font_data->font_count && cleanup_data->user_font_data->tex_gl_ids)
+    if (cleanup_data->user_font_data && cleanup_data->user_font_data->font_count && cleanup_data->user_font_data->tex_gl_ids)
     {
         glDeleteTextures(cleanup_data->user_font_data->font_count, cleanup_data->user_font_data->tex_gl_ids);
     }
 
-    if (cleanup_data->user_shader_prog_data->gl_ids)
+    if (cleanup_data->user_shader_prog_data && cleanup_data->user_shader_prog_data->gl_ids)
     {
         for (int i = 0; i < cleanup_data->user_shader_prog_data->prog_count; i++)
         {
@@ -68,7 +68,7 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
         }
     }
 
-    if (cleanup_data->user_tex_data->tex_count && cleanup_data->user_tex_data->gl_ids)
+    if (cleanup_data->user_tex_data && cleanup_data->user_tex_data->tex_count && cleanup_data->user_tex_data->gl_ids)
     {
         glDeleteTextures(cleanup_data->user_tex_data->tex_count, cleanup_data->user_tex_data->gl_ids);
     }
@@ -352,7 +352,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_user_font_data_t user_font_data = {0};
 
     {
-        FILE *const assets_file_fs = fopen(ZFW_ASSETS_FILE_NAME, "rb");
+        FILE *const assets_file_fs = NULL;//fopen(ZFW_ASSETS_FILE_NAME, "rb");
 
         if (!assets_file_fs)
         {
@@ -519,7 +519,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             double frame_time_change = frame_time - frame_time_last;
 
             // Handle frame time anomalies.
-            if (frame_time_change > target_tick_interval * 8.0)
+            if (frame_time_change > target_tick_interval * 8)
             {
                 frame_time_change = target_tick_interval;
             }
