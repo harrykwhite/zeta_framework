@@ -5,7 +5,10 @@
 #include <string.h>
 #include <zfw_common.h>
 
-#define ZFW_CLAMP(X, MIN, MAX) (((X) < (MIN) ? (MIN) : (X)) > (MAX) ? (MAX) : (X))
+#define ZFW_FLOOR(X) ((int)(X) == (X) ? (X) : ((X) > 0 ? (int)(X) : (int)((X) - 1)))
+#define ZFW_CEIL(X) ((int)(X) == (X) ? (X) : ((X) > 0 ? (int)((X) + 1) : (int)(X)))
+
+#define ZFW_CLAMP(X, MIN, MAX) ((X) < (MIN) ? (MIN) : ((X) > (MAX) ? (MAX) : (X)))
 
 typedef struct
 {

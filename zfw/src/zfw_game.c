@@ -1,5 +1,6 @@
 #include <zfw_game.h>
 
+#include <time.h>
 #include <GLFW/glfw3.h>
 
 typedef struct
@@ -352,7 +353,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_user_font_data_t user_font_data = {0};
 
     {
-        FILE *const assets_file_fs = NULL;//fopen(ZFW_ASSETS_FILE_NAME, "rb");
+        FILE *const assets_file_fs = fopen(ZFW_ASSETS_FILE_NAME, "rb");
 
         if (!assets_file_fs)
         {
