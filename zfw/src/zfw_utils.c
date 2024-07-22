@@ -10,17 +10,35 @@ int zfw_get_int_digit_count(const int n)
     return 1 + zfw_get_int_digit_count(n / 10);
 }
 
-zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int bit_count, zfw_mem_arena_t *const main_mem_arena)
+int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits, const int bit_count, const zfw_bool_t active)
 {
-    bitset->byte_count = (bit_count / 8) + 1;
-    bitset->bytes = zfw_mem_arena_alloc(main_mem_arena, bitset->byte_count);
+    for (int i = 0; i < bit_count; i++)
+    {
+        const zfw_bits_t bitmask = 1 << (i % 8);
+
+        if (((bits[i / 8] & bitmask) != 0) == active)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int bit_count, zfw_mem_arena_t *const mem_arena)
+{
+    const int byte_count = ZFW_CEIL(bit_count / 8.0f);
+
+    bitset->bytes = zfw_mem_arena_alloc(mem_arena, byte_count);
 
     if (!bitset->bytes)
     {
         return ZFW_FALSE;
     }
 
-    memset(bitset->bytes, 0, bitset->byte_count);
+    memset(bitset->bytes, 0, byte_count);
+
+    bitset->byte_count = byte_count;
 
     return ZFW_TRUE;
 }

@@ -119,7 +119,7 @@ static zfw_bool_t pack_textures(cJSON *const c_json, char src_asset_file_path_bu
             return ZFW_FALSE;
         }
 
-        zfw_vec_2d_int_t tex_size;
+        zfw_vec_2d_i_t tex_size;
         stbi_uc *const tex_px_data = stbi_load(src_asset_file_path_buf, &tex_size.x, &tex_size.y, NULL, ZFW_TEX_CHANNEL_COUNT);
 
         if (!tex_px_data)
@@ -265,7 +265,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    zfw_vec_2d_int_t *tex_sizes = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*tex_sizes) * cj_fonts_len);
+    zfw_vec_2d_i_t *tex_sizes = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*tex_sizes) * cj_fonts_len);
 
     if (!tex_sizes)
     {

@@ -108,7 +108,7 @@ typedef struct
     int tex_count;
 
     GLuint *gl_ids;
-    zfw_vec_2d_int_t *sizes;
+    zfw_vec_2d_i_t *sizes;
 } zfw_user_tex_data_t;
 
 typedef struct
@@ -132,7 +132,7 @@ typedef struct
 
     font_char_kerning_t *chars_kernings;
 
-    zfw_vec_2d_int_t *tex_sizes;
+    zfw_vec_2d_i_t *tex_sizes;
     GLuint *tex_gl_ids;
 } zfw_user_font_data_t;
 

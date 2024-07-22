@@ -427,7 +427,7 @@ zfw_bool_t zfw_write_to_render_layer_sprite_batch_slot(const zfw_sprite_batch_sl
     const zfw_sprite_batch_group_t *const batch_group = &batch_groups[slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_GROUP_INDEX]];
 
     const int user_tex_index = batch_group->tex_units[zfw_get_sprite_batch_group_tex_unit_index(slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__LAYER_INDEX], slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_INDEX], slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT_INDEX])].user_tex_index;
-    const zfw_vec_2d_int_t user_tex_size = user_tex_data->sizes[user_tex_index];
+    const zfw_vec_2d_i_t user_tex_size = user_tex_data->sizes[user_tex_index];
 
     const float verts[ZFW_BUILTIN_SPRITE_QUAD_SHADER_PROG_VERT_COUNT * 4] = {
         (0.0f - origin.x) * scale.x,
@@ -819,9 +819,11 @@ zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, 
     zfw_vec_2d_t char_draw_pos_pen = {0};
 
     int text_line_widths[ZFW_CHAR_BATCH_SLOT_LIMIT] = {0};
-    int text_first_line_min_offs;
+    int text_first_line_min_offs = 0;
+    //int text_first_line_min_offs;
     int text_first_line_min_offs_updated = ZFW_FALSE;
-    int text_last_line_max_height;
+    int text_last_line_max_height = 0;
+    //int text_last_line_max_height;
     int text_last_line_max_height_updated = ZFW_FALSE;
     int text_line_counter = 0;
 
@@ -1007,7 +1009,7 @@ zfw_char_batch_key_t zfw_create_char_batch_key(const int layer_index, const int 
     return key;
 }
 
-void zfw_render_sprite_and_character_batches(const zfw_sprite_batch_group_t sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_COUNT], const zfw_char_batch_group_t *const char_batch_group, const zfw_view_state_t *const view_state, const zfw_vec_2d_int_t window_size, const zfw_user_tex_data_t *const user_tex_data, const zfw_user_font_data_t *const user_font_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data)
+void zfw_render_sprite_and_character_batches(const zfw_sprite_batch_group_t sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_COUNT], const zfw_char_batch_group_t *const char_batch_group, const zfw_view_state_t *const view_state, const zfw_vec_2d_i_t window_size, const zfw_user_tex_data_t *const user_tex_data, const zfw_user_font_data_t *const user_font_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data)
 {
     zfw_matrix_4x4_t proj;
     zfw_init_ortho_matrix_4x4(&proj, 0.0f, window_size.x, window_size.y, 0.0f, -1.0f, 1.0f);

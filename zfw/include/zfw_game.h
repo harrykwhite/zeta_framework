@@ -15,7 +15,7 @@ typedef struct
 
     zfw_bool_t *restart;
 
-    zfw_vec_2d_int_t window_size;
+    zfw_vec_2d_i_t window_size;
     zfw_bool_t *window_fullscreen;
     
     const zfw_input_state_t *input_state;
@@ -37,7 +37,7 @@ typedef void (*zfw_on_window_resize_user_func_t)(void *const, zfw_user_func_data
 // Key game information to be defined by the user and used when the game runs.
 typedef struct
 {
-    zfw_vec_2d_int_t init_window_size;
+    zfw_vec_2d_i_t init_window_size;
     const char *init_window_title;
     zfw_bool_t init_window_fullscreen;
     zfw_bool_t window_resizable;

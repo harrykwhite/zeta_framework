@@ -128,7 +128,7 @@ zfw_bool_t zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw
 zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_group);
 zfw_char_batch_key_t zfw_create_char_batch_key(const int layer_index, const int batch_index);
 
-void zfw_render_sprite_and_character_batches(const zfw_sprite_batch_group_t sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_COUNT], const zfw_char_batch_group_t *const char_batch_group, const zfw_view_state_t *const view_state, const zfw_vec_2d_int_t window_size, const zfw_user_tex_data_t *const user_tex_data, const zfw_user_font_data_t *const user_font_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data);
+void zfw_render_sprite_and_character_batches(const zfw_sprite_batch_group_t sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_COUNT], const zfw_char_batch_group_t *const char_batch_group, const zfw_view_state_t *const view_state, const zfw_vec_2d_i_t window_size, const zfw_user_tex_data_t *const user_tex_data, const zfw_user_font_data_t *const user_font_data, const zfw_builtin_shader_prog_data_t *const builtin_shader_prog_data);
 
 void zfw_set_view_state_defaults(zfw_view_state_t *const view_state);
 

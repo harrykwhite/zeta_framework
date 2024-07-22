@@ -22,8 +22,8 @@ typedef struct
 
 typedef struct
 {
-    zfw_vec_2d_int_t size;
-    zfw_vec_2d_int_t pos;
+    zfw_vec_2d_i_t size;
+    zfw_vec_2d_i_t pos;
     zfw_bool_t fullscreen;
 } window_state_t;
 
@@ -478,7 +478,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
         while (!(glfw_window_should_close = glfwWindowShouldClose(glfw_window)) && !restart)
         {
-            const zfw_vec_2d_int_t window_size_last = window_state.size;
+            const zfw_vec_2d_i_t window_size_last = window_state.size;
 
             glfwPollEvents();
 
