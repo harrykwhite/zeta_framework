@@ -160,24 +160,34 @@ inline float zfw_get_dir(const zfw_vec_2d_t vec_a, const zfw_vec_2d_t vec_b)
     return atan2f(-(vec_b.y - vec_a.y), vec_b.x - vec_a.x);
 }
 
-inline zfw_vec_2d_i_t zfw_get_rect_pos(zfw_rect_t *const rect)
+inline zfw_vec_2d_i_t zfw_get_rect_pos(const zfw_rect_t *const rect)
 {
     return zfw_create_vec_2d_i(rect->x, rect->y);
 }
 
-inline zfw_vec_2d_t zfw_get_rect_f_pos(zfw_rect_f_t *const rect)
+inline zfw_vec_2d_t zfw_get_rect_f_pos(const zfw_rect_f_t *const rect)
 {
     return zfw_create_vec_2d(rect->x, rect->y);
 }
 
-inline zfw_vec_2d_i_t zfw_get_rect_size(zfw_rect_t *const rect)
+inline zfw_vec_2d_i_t zfw_get_rect_size(const zfw_rect_t *const rect)
 {
     return zfw_create_vec_2d_i(rect->width, rect->height);
 }
 
-inline zfw_vec_2d_t zfw_get_rect_f_size(zfw_rect_f_t *const rect)
+inline zfw_vec_2d_t zfw_get_rect_f_size(const zfw_rect_f_t *const rect)
 {
     return zfw_create_vec_2d(rect->width, rect->height);
+}
+
+inline zfw_vec_2d_i_t zfw_get_rect_center(const zfw_rect_f_t *const rect)
+{
+    return zfw_create_vec_2d_i(rect->x + (rect->width / 2), rect->y + (rect->height / 2));
+}
+
+inline zfw_vec_2d_t zfw_get_rect_f_center(const zfw_rect_f_t *const rect)
+{
+    return zfw_create_vec_2d(rect->x + (rect->width / 2.0f), rect->y + (rect->height / 2.0f));
 }
 
 inline zfw_bool_t zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect)
