@@ -195,14 +195,19 @@ inline zfw_bool_t zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t
     return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
 }
 
+inline zfw_bool_t zfw_is_vec_2d_in_rect_f(const zfw_vec_2d_t vec, const zfw_rect_f_t *const rect)
+{
+    return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
+}
+
 inline zfw_bool_t zfw_do_rects_collide(const zfw_rect_t *const rect_a, const zfw_rect_t *const rect_b)
 {
-    return rect_a->x + rect_a->width >= rect_b->x && rect_a->y + rect_a->height >= rect_b->y && rect_a->x < rect_b->x + rect_b->width && rect_a->y < rect_b->y + rect_b->height;
+    return rect_a->x + rect_a->width > rect_b->x && rect_a->y + rect_a->height > rect_b->y && rect_a->x < rect_b->x + rect_b->width && rect_a->y < rect_b->y + rect_b->height;
 }
 
 inline zfw_bool_t zfw_do_rect_fs_collide(const zfw_rect_f_t *const rect_a, const zfw_rect_f_t *const rect_b)
 {
-    return rect_a->x + rect_a->width >= rect_b->x && rect_a->y + rect_a->height >= rect_b->y && rect_a->x < rect_b->x + rect_b->width && rect_a->y < rect_b->y + rect_b->height;
+    return rect_a->x + rect_a->width > rect_b->x && rect_a->y + rect_a->height > rect_b->y && rect_a->x < rect_b->x + rect_b->width && rect_a->y < rect_b->y + rect_b->height;
 }
 
 #endif
