@@ -23,7 +23,8 @@ void *zfw_mem_arena_alloc(zfw_mem_arena_t *const main_mem_arena, const int size)
 {
     if (main_mem_arena->buf_offs + size > main_mem_arena->buf_size)
     {
-        zfw_log_error("Attempting to allocate %d bytes in a memory arena with only %d byte(s) remaining!", size, main_mem_arena->buf_size - main_mem_arena->buf_offs);
+        zfw_log_error("Attempting to allocate %d bytes in a memory arena with only %d byte(s) remaining!",
+                      size, main_mem_arena->buf_size - main_mem_arena->buf_offs);
         return NULL;
     }
 
@@ -50,3 +51,9 @@ void zfw_clean_mem_arena(zfw_mem_arena_t *const main_mem_arena)
     free(main_mem_arena->buf);
     memset(main_mem_arena, 0, sizeof(*main_mem_arena));
 }
+
+zfw_bool_t zfw_does_line_intersect_rect(const zfw_line_t *const line, const zfw_rect_t *const rect)
+{
+    return ZFW_TRUE;
+}
+

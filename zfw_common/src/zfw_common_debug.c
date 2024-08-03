@@ -68,3 +68,4 @@ zfw_bool_t zfw_check_data_type_sizes()
 
 	return ZFW_TRUE;
 }
+

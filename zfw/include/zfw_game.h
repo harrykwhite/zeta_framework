@@ -17,7 +17,7 @@ typedef struct
 
     zfw_vec_2d_i_t window_size;
     zfw_bool_t *window_fullscreen;
-    
+
     const zfw_input_state_t *input_state;
     const zfw_input_state_t *input_state_last;
 
@@ -31,7 +31,7 @@ typedef struct
 } zfw_user_func_data_t;
 
 typedef void (*zfw_on_game_init_user_func_t)(void *const, zfw_user_func_data_t *const);
-typedef void (*zfw_on_game_tick_user_func_t)(void *const, zfw_user_func_data_t *const);
+typedef void (*zfw_on_game_tick_user_func_t)(void *const, zfw_user_func_data_t *const, const int, const double);
 typedef void (*zfw_on_window_resize_user_func_t)(void *const, zfw_user_func_data_t *const);
 
 // Key game information to be defined by the user and used when the game runs.
@@ -52,3 +52,4 @@ typedef struct
 zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info);
 
 #endif
+
