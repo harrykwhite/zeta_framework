@@ -10,6 +10,7 @@ add_library(zfw STATIC
     src/zfw_assets.c
     src/zfw_rendering.c
     src/zfw_utils.c
+    src/zfw_math.c
     ${PARENT_SOURCE_DIR}/vendor/glad/src/glad.c
 
     include/zfw_game.h
@@ -17,6 +18,7 @@ add_library(zfw STATIC
     include/zfw_assets.h
     include/zfw_rendering.h
     include/zfw_utils.h
+    include/zfw_math.h
     ${PARENT_SOURCE_DIR}/vendor/glad/include/glad/glad.h
     ${PARENT_SOURCE_DIR}/vendor/glad/include/KHR/khrplatform.h
 )
@@ -28,3 +30,4 @@ target_include_directories(zfw PRIVATE
 )
 
 target_link_libraries(zfw PRIVATE zfw_common glfw)
+

@@ -1,7 +1,9 @@
 #ifndef __ZFW_GAME_H__
 #define __ZFW_GAME_H__
 
-#include <zfw_common.h>
+#include <zfw_common_mem.h>
+#include <zfw_common_math.h>
+#include <zfw_common_misc.h>
 #include "zfw_input.h"
 #include "zfw_assets.h"
 #include "zfw_rendering.h"

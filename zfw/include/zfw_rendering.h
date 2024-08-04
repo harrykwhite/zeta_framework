@@ -1,9 +1,9 @@
 #ifndef __ZFW_RENDERING_H__
 #define __ZFW_RENDERING_H__
 
-#include <math.h>
 #include <glad/glad.h>
-#include <zfw_common.h>
+#include <zfw_common_math.h>
+#include <zfw_common_bits.h>
 #include "zfw_assets.h"
 #include "zfw_utils.h"
 

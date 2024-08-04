@@ -3,7 +3,10 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 #include <stb_image.h>
-#include <zfw_common.h>
+#include <zfw_common_misc.h>
+#include <zfw_common_assets.h>
+#include <zfw_common_math.h>
+#include <zfw_common_mem.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

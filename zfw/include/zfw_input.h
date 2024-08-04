@@ -1,7 +1,8 @@
 #ifndef __ZFW_INPUT_H__
 #define __ZFW_INPUT_H__
 
-#include <zfw_common.h>
+#include <zfw_common_math.h>
+#include <zfw_common_misc.h>
 
 typedef enum
 {
@@ -188,4 +189,3 @@ inline zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t
 }
 
 #endif
-

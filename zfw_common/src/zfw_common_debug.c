@@ -1,8 +1,9 @@
-#include <zfw_common.h>
+#include <zfw_common_debug.h>
 
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <zfw_common_misc.h>
 
 void zfw_log(const char *const msg, ...)
 {
@@ -68,4 +69,3 @@ zfw_bool_t zfw_check_data_type_sizes()
 
 	return ZFW_TRUE;
 }
-

@@ -1,16 +1,6 @@
-#if 0
+#include <zfw_common_bits.h>
 
-#include <zfw_utils.h>
-
-int zfw_get_int_digit_count(const int n)
-{
-    if (n > -10 && n < 10)
-    {
-        return 1;
-    }
-
-    return 1 + zfw_get_int_digit_count(n / 10);
-}
+#include <zfw_common_math.h>
 
 int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits, const int bit_count, const zfw_bool_t active)
 {
@@ -27,7 +17,8 @@ int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits,
     return -1;
 }
 
-zfw_bool_t zfw_init_bitset(zfw_bitset_t *const bitset, const int bit_count, zfw_mem_arena_t *const mem_arena)
+zfw_bool_t zfw_init_bitset_in_mem_arena(zfw_bitset_t *const bitset, const int bit_count,
+                                        zfw_mem_arena_t *const mem_arena)
 {
     const int byte_count = ZFW_CEIL(bit_count / 8.0f);
 
@@ -122,6 +113,4 @@ zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset)
 
     return ZFW_TRUE;
 }
-
-#endif
 

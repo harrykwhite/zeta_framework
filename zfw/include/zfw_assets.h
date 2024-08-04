@@ -3,7 +3,9 @@
 
 #include <stdio.h>
 #include <glad/glad.h>
-#include <zfw_common.h>
+#include <zfw_common_assets.h>
+#include <zfw_common_mem.h>
+#include <zfw_common_math.h>
 
 #define ZFW_BUILTIN_SPRITE_QUAD_VERT_SHADER_SRC \
     "#version 430 core\n" \

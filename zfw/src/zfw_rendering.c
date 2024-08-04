@@ -242,7 +242,7 @@ zfw_bool_t zfw_init_sprite_batch_group(zfw_sprite_batch_group_t *const batch_gro
     }
 
     // Initialize the slot activity bitset.
-    zfw_init_bitset(&batch_group->slot_activity,
+    zfw_init_bitset_in_mem_arena(&batch_group->slot_activity,
                     ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT,
                     main_mem_arena);
     //
