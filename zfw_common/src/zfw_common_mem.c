@@ -51,4 +51,3 @@ void zfw_clean_mem_arena(zfw_mem_arena_t *const mem_arena)
     free(mem_arena->buf);
     memset(mem_arena, 0, sizeof(*mem_arena));
 }
-

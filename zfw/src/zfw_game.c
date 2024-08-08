@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <GLFW/glfw3.h>
+#include <zfw_common_debug.h>
 
 typedef struct
 {
@@ -222,9 +223,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-    GLFWwindow *const glfw_window = glfwCreateWindow(user_run_info->init_window_size.x,
-                                                     user_run_info->init_window_size.y,
-                                                     user_run_info->init_window_title, NULL, NULL);
+    GLFWwindow *const glfw_window =
+        glfwCreateWindow(user_run_info->init_window_size.x, user_run_info->init_window_size.y,
+                         user_run_info->init_window_title, NULL, NULL);
 
     if (!glfw_window)
     {
@@ -302,10 +303,8 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         cleanup_data.user_font_data = &user_font_data;
 
         zfw_log("Retrieving user asset data from \"%s\"...", ZFW_ASSETS_FILE_NAME);
-        const zfw_bool_t asset_data_read_successful =
-            zfw_retrieve_user_asset_data_from_assets_file(&user_tex_data,
-                                                          &user_shader_prog_data, &user_font_data, assets_file_fs,
-                                                          &main_mem_arena);
+        const zfw_bool_t asset_data_read_successful = zfw_retrieve_user_asset_data_from_assets_file(
+            &user_tex_data, &user_shader_prog_data, &user_font_data, assets_file_fs, &main_mem_arena);
 
         fclose(assets_file_fs);
 
@@ -569,4 +568,3 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     return ZFW_TRUE;
 }
-

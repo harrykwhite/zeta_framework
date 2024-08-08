@@ -26,4 +26,3 @@ inline float zfw_gen_rand_float_in_range(const float min, const float max)
 }
 
 #endif
-

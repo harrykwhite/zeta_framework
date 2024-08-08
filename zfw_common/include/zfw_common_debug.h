@@ -6,4 +6,3 @@ void zfw_log_error(const char *const msg, ...);
 void zfw_log_warning(const char *const msg, ...);
 
 #endif
-

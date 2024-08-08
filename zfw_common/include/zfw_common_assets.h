@@ -17,4 +17,3 @@ typedef short font_char_hor_advance_t;
 typedef short font_char_kerning_t;
 
 #endif
-

@@ -54,4 +54,3 @@ typedef struct
 zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info);
 
 #endif
-

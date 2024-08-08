@@ -16,4 +16,3 @@ add_library(zfw_common STATIC
 )
 
 target_include_directories(zfw_common PRIVATE include)
-

@@ -7,6 +7,7 @@
 #include <zfw_common_assets.h>
 #include <zfw_common_math.h>
 #include <zfw_common_mem.h>
+#include <zfw_common_debug.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -61,8 +62,8 @@ static char *get_packing_instrs_file_chars(char src_asset_file_path_buf[SRC_ASSE
     fseek(packing_instrs_file_fs, 0, SEEK_END);
     const int packing_instrs_file_size = ftell(packing_instrs_file_fs);
 
-    const int packing_instrs_file_chars_size = packing_instrs_file_size + 1; /* (A null terminator must be added to the
-                                                                                end.) */
+    const int packing_instrs_file_chars_size =
+        packing_instrs_file_size + 1; // (A null terminator must be added to the end.)
     char *packing_instrs_file_chars = malloc(packing_instrs_file_chars_size);
 
     if (!packing_instrs_file_chars)
@@ -84,7 +85,8 @@ static char *get_packing_instrs_file_chars(char src_asset_file_path_buf[SRC_ASSE
 }
 
 static cJSON *get_cj_assets_array_and_write_asset_count_to_assets_file(cJSON *const c_json,
-                                                                       const char *const packing_instrs_array_name, FILE *const assets_file_fs)
+                                                                       const char *const packing_instrs_array_name,
+                                                                       FILE *const assets_file_fs)
 {
     cJSON *const cj_assets = cJSON_GetObjectItemCaseSensitive(c_json, packing_instrs_array_name);
 
@@ -106,8 +108,8 @@ static cJSON *get_cj_assets_array_and_write_asset_count_to_assets_file(cJSON *co
 static zfw_bool_t pack_textures(cJSON *const c_json, char src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE],
                                 const int src_asset_file_path_start_len, FILE *const assets_file_fs)
 {
-    const cJSON *const cj_textures = get_cj_assets_array_and_write_asset_count_to_assets_file(c_json, "textures",
-                                                                                              assets_file_fs);
+    const cJSON *const cj_textures =
+        get_cj_assets_array_and_write_asset_count_to_assets_file(c_json, "textures", assets_file_fs);
 
     if (!cj_textures)
     {
@@ -128,18 +130,22 @@ static zfw_bool_t pack_textures(cJSON *const c_json, char src_asset_file_path_bu
 
         if (src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE - 1])
         {
-            zfw_log_error("The texture relative file path of \"%s\" exceeds the size limit of %d characters!",
+            zfw_log_error("The texture relative file path of \"%s\" exceeds the size "
+                          "limit of "
+                          "%d characters!",
                           cj_tex->valuestring, SRC_ASSET_FILE_PATH_BUF_SIZE - 1 - src_asset_file_path_start_len);
             return ZFW_FALSE;
         }
 
         zfw_vec_2d_i_t tex_size;
-        stbi_uc *const tex_px_data = stbi_load(src_asset_file_path_buf, &tex_size.x, &tex_size.y, NULL,
-                                               ZFW_TEX_CHANNEL_COUNT);
+        stbi_uc *const tex_px_data =
+            stbi_load(src_asset_file_path_buf, &tex_size.x, &tex_size.y, NULL, ZFW_TEX_CHANNEL_COUNT);
 
         if (!tex_px_data)
         {
-            zfw_log_error("Failed to load pixel data for texture with relative file path \"%s\"!", cj_tex->valuestring);
+            zfw_log_error("Failed to load pixel data for texture with relative file path "
+                          "\"%s\"!",
+                          cj_tex->valuestring);
             return ZFW_FALSE;
         }
 
@@ -155,8 +161,8 @@ static zfw_bool_t pack_textures(cJSON *const c_json, char src_asset_file_path_bu
 static zfw_bool_t pack_shader_progs(cJSON *const c_json, char src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE],
                                     const int src_asset_file_path_start_len, FILE *const assets_file_fs)
 {
-    const cJSON *const cj_progs = get_cj_assets_array_and_write_asset_count_to_assets_file(c_json, "shader_progs",
-                                                                                           assets_file_fs);
+    const cJSON *const cj_progs =
+        get_cj_assets_array_and_write_asset_count_to_assets_file(c_json, "shader_progs", assets_file_fs);
 
     if (!cj_progs)
     {
@@ -185,7 +191,9 @@ static zfw_bool_t pack_shader_progs(cJSON *const c_json, char src_asset_file_pat
 
             if (src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE - 1])
             {
-                zfw_log_error("The shader file relative path of \"%s\" exceeds the size limit of %d characters!",
+                zfw_log_error("The shader file relative path of \"%s\" exceeds the size "
+                              "limit of "
+                              "%d characters!",
                               shader_file_rel_path, SRC_ASSET_FILE_PATH_BUF_SIZE - 1 - src_asset_file_path_start_len);
                 return ZFW_FALSE;
             }
@@ -203,8 +211,9 @@ static zfw_bool_t pack_shader_progs(cJSON *const c_json, char src_asset_file_pat
 
             if (shader_file_size + 1 > ZFW_SHADER_SRC_BUF_SIZE)
             {
-                zfw_log_error("The size of shader file \"%s\" exceeds the limit of %d bytes!", src_asset_file_path_buf,
-                              ZFW_SHADER_SRC_BUF_SIZE);
+                zfw_log_error("The size of shader file \"%s\" exceeds the limit of %d "
+                              "bytes!",
+                              src_asset_file_path_buf, ZFW_SHADER_SRC_BUF_SIZE);
                 fclose(shader_file_fs);
                 return ZFW_FALSE;
             }
@@ -226,8 +235,8 @@ static zfw_bool_t pack_shader_progs(cJSON *const c_json, char src_asset_file_pat
 static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE],
                              const int src_asset_file_path_start_len, FILE *const assets_file_fs)
 {
-    const cJSON *const cj_fonts = get_cj_assets_array_and_write_asset_count_to_assets_file(c_json, "fonts",
-                                                                                           assets_file_fs);
+    const cJSON *const cj_fonts =
+        get_cj_assets_array_and_write_asset_count_to_assets_file(c_json, "fonts", assets_file_fs);
 
     if (!cj_fonts)
     {
@@ -248,7 +257,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    font_char_hor_offs_t *char_hor_offsets = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_hor_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_hor_offs_t *char_hor_offsets =
+        zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_hor_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_hor_offsets)
     {
@@ -256,7 +266,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    font_char_vert_offs_t *char_vert_offsets = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_vert_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_vert_offs_t *char_vert_offsets =
+        zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_vert_offsets) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_vert_offsets)
     {
@@ -264,7 +275,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    font_char_hor_advance_t *chars_hor_advances = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*chars_hor_advances) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_hor_advance_t *chars_hor_advances =
+        zfw_mem_arena_alloc(&main_mem_arena, sizeof(*chars_hor_advances) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!chars_hor_advances)
     {
@@ -272,7 +284,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    font_char_src_rect_t *char_src_rects = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_src_rects) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_src_rect_t *char_src_rects =
+        zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_src_rects) * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_src_rects)
     {
@@ -280,7 +293,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    font_char_kerning_t *char_kernings = zfw_mem_arena_alloc(&main_mem_arena, sizeof(*char_kernings) * ZFW_FONT_CHAR_RANGE_SIZE * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
+    font_char_kerning_t *char_kernings = zfw_mem_arena_alloc(
+        &main_mem_arena, sizeof(*char_kernings) * ZFW_FONT_CHAR_RANGE_SIZE * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len);
 
     if (!char_kernings)
     {
@@ -329,11 +343,15 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             return ZFW_FALSE;
         }
 
-        strncpy(src_asset_file_path_buf + src_asset_file_path_start_len, cj_rfp->valuestring, SRC_ASSET_FILE_PATH_BUF_SIZE - src_asset_file_path_start_len);
+        strncpy(src_asset_file_path_buf + src_asset_file_path_start_len, cj_rfp->valuestring,
+                SRC_ASSET_FILE_PATH_BUF_SIZE - src_asset_file_path_start_len);
 
         if (src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE - 1])
         {
-            zfw_log_error("The font relative file path of \"%s\" exceeds the size limit of %d characters!", cj_rfp->valuestring, SRC_ASSET_FILE_PATH_BUF_SIZE - 1 - src_asset_file_path_start_len);
+            zfw_log_error("The font relative file path of \"%s\" exceeds the size limit "
+                          "of %d "
+                          "characters!",
+                          cj_rfp->valuestring, SRC_ASSET_FILE_PATH_BUF_SIZE - 1 - src_asset_file_path_start_len);
             zfw_clean_mem_arena(&main_mem_arena);
             return ZFW_FALSE;
         }
@@ -353,7 +371,10 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
 
         if (FT_New_Face(ft_lib, src_asset_file_path_buf, 0, &ft_face))
         {
-            zfw_log_error("Failed to set up the FreeType face object for font with relative path \"%s\".", cj_rfp->valuestring);
+            zfw_log_error("Failed to set up the FreeType face object for font with "
+                          "relative "
+                          "path \"%s\".",
+                          cj_rfp->valuestring);
 
             FT_Done_FreeType(ft_lib);
             zfw_clean_mem_arena(&main_mem_arena);
@@ -377,16 +398,19 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             largest_glyph_bitmap_width = ZFW_MAX(ft_face->glyph->bitmap.width, largest_glyph_bitmap_width);
         }
 
-        // Set the ideal width of the font texture based on the largest glyph bitmap width.
+        // Set the ideal width of the font texture based on the largest glyph
+        // bitmap width.
         const int ideal_tex_width = largest_glyph_bitmap_width * ZFW_FONT_CHAR_RANGE_SIZE;
 
-        // Determine the actual font texture size based on the ideal width and a maximum width.
+        // Determine the actual font texture size based on the ideal width and a
+        // maximum width.
         const int max_tex_width = 1024;
 
         tex_sizes[i].x = ZFW_MIN(ideal_tex_width, max_tex_width);
         tex_sizes[i].y = line_heights[i] * ((ideal_tex_width / max_tex_width) + 1);
 
-        // Initialize the pixel data of the font texture by setting all the pixels to be transparent white.
+        // Initialize the pixel data of the font texture by setting all the
+        // pixels to be transparent white.
         const int tex_px_data_size = tex_sizes[i].x * tex_sizes[i].y * ZFW_FONT_TEX_CHANNEL_COUNT;
         tex_px_datas[i] = zfw_mem_arena_alloc(&main_mem_arena, tex_px_data_size);
 
@@ -428,7 +452,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             const int font_char_index = (i * ZFW_FONT_CHAR_RANGE_SIZE) + j;
 
             char_hor_offsets[font_char_index] = ft_face->glyph->metrics.horiBearingX >> 6;
-            char_vert_offsets[font_char_index] = (ft_face->size->metrics.ascender - ft_face->glyph->metrics.horiBearingY) >> 6;
+            char_vert_offsets[font_char_index] =
+                (ft_face->size->metrics.ascender - ft_face->glyph->metrics.horiBearingY) >> 6;
 
             chars_hor_advances[font_char_index] = ft_face->glyph->metrics.horiAdvance >> 6;
 
@@ -440,7 +465,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             for (int k = 0; k < ZFW_FONT_CHAR_RANGE_SIZE; k++)
             {
                 FT_Vector ft_kerning;
-                FT_Get_Kerning(ft_face, FT_Get_Char_Index(ft_face, ZFW_FONT_CHAR_RANGE_BEGIN + k), ft_char_index, FT_KERNING_DEFAULT, &ft_kerning);
+                FT_Get_Kerning(ft_face, FT_Get_Char_Index(ft_face, ZFW_FONT_CHAR_RANGE_BEGIN + k), ft_char_index,
+                               FT_KERNING_DEFAULT, &ft_kerning);
 
                 char_kernings[(ZFW_FONT_CHAR_RANGE_SIZE * font_char_index) + k] = ft_kerning.x >> 6;
             }
@@ -450,11 +476,14 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             {
                 for (int x = 0; x < char_src_rects[font_char_index].w; x++)
                 {
-                    const unsigned char px_alpha = ft_face->glyph->bitmap.buffer[(y * ft_face->glyph->bitmap.width) + x];
+                    const unsigned char px_alpha =
+                        ft_face->glyph->bitmap.buffer[(y * ft_face->glyph->bitmap.width) + x];
 
                     if (px_alpha > 0)
                     {
-                        const int px_data_index = ((char_src_rects[font_char_index].y + y) * tex_sizes[i].x * ZFW_FONT_TEX_CHANNEL_COUNT) + ((char_src_rects[font_char_index].x + x) * ZFW_FONT_TEX_CHANNEL_COUNT);
+                        const int px_data_index =
+                            ((char_src_rects[font_char_index].y + y) * tex_sizes[i].x * ZFW_FONT_TEX_CHANNEL_COUNT) +
+                            ((char_src_rects[font_char_index].x + x) * ZFW_FONT_TEX_CHANNEL_COUNT);
                         tex_px_datas[i][px_data_index + 3] = px_alpha;
                     }
                 }
@@ -482,13 +511,15 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
 
     fwrite(char_src_rects, sizeof(*char_src_rects), ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len, assets_file_fs);
 
-    fwrite(char_kernings, sizeof(*char_kernings), ZFW_FONT_CHAR_RANGE_SIZE * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len, assets_file_fs);
+    fwrite(char_kernings, sizeof(*char_kernings), ZFW_FONT_CHAR_RANGE_SIZE * ZFW_FONT_CHAR_RANGE_SIZE * cj_fonts_len,
+           assets_file_fs);
 
     fwrite(tex_sizes, sizeof(*tex_sizes), cj_fonts_len, assets_file_fs);
 
     for (int i = 0; i < cj_fonts_len; i++)
     {
-        fwrite(tex_px_datas[i], sizeof(*tex_px_datas[i]), tex_sizes[i].x * tex_sizes[i].y * ZFW_FONT_TEX_CHANNEL_COUNT, assets_file_fs);
+        fwrite(tex_px_datas[i], sizeof(*tex_px_datas[i]), tex_sizes[i].x * tex_sizes[i].y * ZFW_FONT_TEX_CHANNEL_COUNT,
+               assets_file_fs);
     }
     //
 
@@ -508,7 +539,10 @@ int main(int argc, char *argv[])
     // Get the source directory and the assets file directory if provided.
     if (argc != 3)
     {
-        zfw_log_error("Invalid number of command-line arguments! Expected a source directory and an assets file directory to be provided.");
+        zfw_log_error("Invalid number of command-line arguments! Expected a source "
+                      "directory "
+                      "and an assets file "
+                      "directory to be provided.");
         return EXIT_FAILURE;
     }
 
@@ -517,7 +551,8 @@ int main(int argc, char *argv[])
 
     // Determine the assets file path using the directory.
     char assets_file_path[ASSETS_FILE_PATH_BUF_SIZE];
-    const int assets_file_path_len = snprintf(assets_file_path, ASSETS_FILE_PATH_BUF_SIZE, "%s/%s", assets_file_dir, ZFW_ASSETS_FILE_NAME);
+    const int assets_file_path_len =
+        snprintf(assets_file_path, ASSETS_FILE_PATH_BUF_SIZE, "%s/%s", assets_file_dir, ZFW_ASSETS_FILE_NAME);
 
     if (assets_file_path_len >= ASSETS_FILE_PATH_BUF_SIZE)
     {
@@ -527,7 +562,8 @@ int main(int argc, char *argv[])
 
     // Initialize the source asset file path buffer with the source directory.
     char src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE] = {0};
-    const int src_asset_file_path_start_len = snprintf(src_asset_file_path_buf, SRC_ASSET_FILE_PATH_BUF_SIZE, "%s/", src_dir);
+    const int src_asset_file_path_start_len =
+        snprintf(src_asset_file_path_buf, SRC_ASSET_FILE_PATH_BUF_SIZE, "%s/", src_dir);
 
     if (src_asset_file_path_start_len >= SRC_ASSET_FILE_PATH_BUF_SIZE)
     {
@@ -536,7 +572,8 @@ int main(int argc, char *argv[])
     }
 
     // Get the contents of the packing instructions JSON file.
-    char *const packing_instrs_file_chars = get_packing_instrs_file_chars(src_asset_file_path_buf, src_asset_file_path_start_len);
+    char *const packing_instrs_file_chars =
+        get_packing_instrs_file_chars(src_asset_file_path_buf, src_asset_file_path_start_len);
 
     if (!packing_instrs_file_chars)
     {

@@ -21,4 +21,3 @@ void zfw_rewind_mem_arena(zfw_mem_arena_t *const main_mem_arena);
 void zfw_clean_mem_arena(zfw_mem_arena_t *const main_mem_arena);
 
 #endif
-

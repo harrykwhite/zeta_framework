@@ -1,0 +1,6 @@
+BasedOnStyle: Microsoft
+SortIncludes: false
+FixNamespaceComments: false
+InsertNewlineAtEOF: true
+AllowShortCaseLabelsOnASingleLine: true
+IndentCaseLabels: true

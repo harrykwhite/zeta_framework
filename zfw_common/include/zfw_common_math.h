@@ -76,7 +76,7 @@ void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4]);
 
 void zfw_init_identity_matrix_4x4(zfw_matrix_4x4_t *const mat);
 void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, const float right, const float bottom,
-                               const float top,const float near, const float far);
+                               const float top, const float near, const float far);
 
 float zfw_get_angle_diff(const float a, const float b);
 
@@ -230,19 +230,12 @@ inline zfw_bool_t zfw_is_vec_2d_in_rect_f(const zfw_vec_2d_t vec, const zfw_rect
 
 inline zfw_bool_t zfw_do_rects_collide(const zfw_rect_t *const r1, const zfw_rect_t *const r2)
 {
-    return r1->x + r1->w > r2->x
-        && r1->y + r1->h > r2->y
-        && r1->x < r2->x + r2->w
-        && r1->y < r2->y + r2->h;
+    return r1->x + r1->w > r2->x && r1->y + r1->h > r2->y && r1->x < r2->x + r2->w && r1->y < r2->y + r2->h;
 }
 
 inline zfw_bool_t zfw_do_rect_fs_collide(const zfw_rect_f_t *const r1, const zfw_rect_f_t *const r2)
 {
-    return r1->x + r1->w > r2->x
-        && r1->y + r1->h > r2->y
-        && r1->x < r2->x + r2->w
-        && r1->y < r2->y + r2->h;
+    return r1->x + r1->w > r2->x && r1->y + r1->h > r2->y && r1->x < r2->x + r2->w && r1->y < r2->y + r2->h;
 }
 
 #endif
-

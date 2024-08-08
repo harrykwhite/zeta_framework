@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <GLFW/glfw3.h>
+#include <zfw_common_debug.h>
 
 void zfw_reset_gamepad_state(zfw_input_state_t *const input_state)
 {
@@ -86,4 +87,3 @@ zfw_key_code_t zfw_get_glfw_to_zfw_key_code(const int glfw_key_code)
 
     return -1;
 }
-

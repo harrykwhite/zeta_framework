@@ -162,17 +162,11 @@ void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4])
 
         switch (i)
         {
-            case 1:
-                edges[i].b.y += rect->h;
-                break;
+            case 1: edges[i].b.y += rect->h; break;
 
-            case 2:
-                edges[i].b.x -= rect->w;
-                break;
+            case 2: edges[i].b.x -= rect->w; break;
 
-            case 3:
-                edges[i].b.y -= rect->h;
-                break;
+            case 3: edges[i].b.y -= rect->h; break;
         }
     }
 }
@@ -200,4 +194,3 @@ void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, co
     mat->elems[3][2] = -(far + near) / (far - near);
     mat->elems[3][3] = 1.0f;
 }
-

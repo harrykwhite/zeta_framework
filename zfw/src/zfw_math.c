@@ -54,23 +54,21 @@ zfw_vec_2d_t zfw_get_poly_pt(const zfw_poly_t poly, const int rel_pt_index)
     return g_poly_pts[poly.first_pt_index + rel_pt_index];
 }
 
-void zfw_set_poly_pt(zfw_poly_t *const poly, const int rel_pt_index, const zfw_vec_2d_t pt)
+void zfw_set_poly_pt(const zfw_poly_t poly, const int rel_pt_index, const zfw_vec_2d_t pt)
 {
-    g_poly_pts[poly->first_pt_index + rel_pt_index] = pt;
+    g_poly_pts[poly.first_pt_index + rel_pt_index] = pt;
 }
 
 zfw_bool_t zfw_is_pt_in_poly(const zfw_vec_2d_t pt, const zfw_poly_t poly)
 {
-    /* Count the number of intersections there are with the polygon's edges when a line is cast from the point to the right.
-       The point is in the polygon if and only if the count is odd. */
+    // Count the number of intersections there are with the polygon's edges when a line is cast from the point to the
+    // right. The point is in the polygon if and only if the count is odd.
     zfw_bool_t in_poly = ZFW_FALSE;
 
     for (int i = 0; i < poly.pt_count; ++i)
     {
-        const zfw_line_t line = {
-            g_poly_pts[poly.first_pt_index + i],
-            g_poly_pts[poly.first_pt_index + ((i + 1) % poly.pt_count)]
-        };
+        const zfw_line_t line = {g_poly_pts[poly.first_pt_index + i],
+                                 g_poly_pts[poly.first_pt_index + ((i + 1) % poly.pt_count)]};
 
         zfw_vec_2d_t top_line_pt, bottom_line_pt;
 
@@ -89,13 +87,13 @@ zfw_bool_t zfw_is_pt_in_poly(const zfw_vec_2d_t pt, const zfw_poly_t poly)
         {
             continue;
         }
-        
+
         // TODO: Account for possible division by zero.
 
         const float line_inters_y_perc = (pt.y - top_line_pt.y) / (bottom_line_pt.y - top_line_pt.y);
         const float line_inters_x = top_line_pt.x + (line_inters_y_perc * (bottom_line_pt.x - top_line_pt.x));
 
-        if (pt.x < line_inters_x)
+        if (pt.x <= line_inters_x)
         {
             in_poly = !in_poly;
         }
@@ -127,4 +125,3 @@ zfw_bool_t zfw_do_polys_inters(const zfw_poly_t poly_a, const zfw_poly_t poly_b)
 
     return ZFW_FALSE;
 }
-
