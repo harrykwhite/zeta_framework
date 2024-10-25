@@ -7,7 +7,7 @@
 #define ZFW_MIN(X, Y) ((Y) < (X) ? (Y) : (X))
 #define ZFW_MAX(X, Y) ((Y) > (X) ? (Y) : (X))
 
-#define ZFW_FLOOR(X) ((int)(X) == (X) ? (X) : ((X) > 0 ? (int)(X) : (int)((X) - 1)))
+#define ZFW_FLOOR(X) ((int)(X) == (X) ? (X) : ((X) > 0 ? (int)(X) : (int)((X)-1)))
 #define ZFW_CEIL(X) ((int)(X) == (X) ? (X) : ((X) > 0 ? (int)((X) + 1) : (int)(X)))
 
 #define ZFW_CLAMP(X, MIN, MAX) ((X) < (MIN) ? (MIN) : ((X) > (MAX) ? (MAX) : (X)))
@@ -75,8 +75,7 @@ void zfw_init_rect_f(zfw_rect_f_t *const rect, const float x, const float y, con
 void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4]);
 
 void zfw_init_identity_matrix_4x4(zfw_matrix_4x4_t *const mat);
-void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, const float right, const float bottom,
-                               const float top, const float near, const float far);
+void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, const float right, const float bottom, const float top, const float near, const float far);
 
 float zfw_get_angle_diff(const float a, const float b);
 

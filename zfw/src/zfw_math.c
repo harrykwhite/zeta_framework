@@ -67,8 +67,7 @@ zfw_bool_t zfw_is_pt_in_poly(const zfw_vec_2d_t pt, const zfw_poly_t poly)
 
     for (int i = 0; i < poly.pt_count; ++i)
     {
-        const zfw_line_t line = {g_poly_pts[poly.first_pt_index + i],
-                                 g_poly_pts[poly.first_pt_index + ((i + 1) % poly.pt_count)]};
+        const zfw_line_t line = {g_poly_pts[poly.first_pt_index + i], g_poly_pts[poly.first_pt_index + ((i + 1) % poly.pt_count)]};
 
         zfw_vec_2d_t top_line_pt, bottom_line_pt;
 

@@ -2,8 +2,7 @@
 
 #include <zfw_common_math.h>
 
-int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits, const int bit_count,
-                                                   const zfw_bool_t active)
+int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits, const int bit_count, const zfw_bool_t active)
 {
     for (int i = 0; i < bit_count; i++)
     {
@@ -18,8 +17,7 @@ int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits,
     return -1;
 }
 
-zfw_bool_t zfw_init_bitset_in_mem_arena(zfw_bitset_t *const bitset, const int bit_count,
-                                        zfw_mem_arena_t *const mem_arena)
+zfw_bool_t zfw_init_bitset_in_mem_arena(zfw_bitset_t *const bitset, const int bit_count, zfw_mem_arena_t *const mem_arena)
 {
     const int byte_count = ZFW_CEIL(bit_count / 8.0f);
 
@@ -56,8 +54,7 @@ int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset)
     return -1;
 }
 
-int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_ind,
-                                                     const int end_bit_ind)
+int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_ind, const int end_bit_ind)
 {
     const int begin_byte_index = begin_bit_ind / 8;
     const int end_byte_index = (end_bit_ind / 8) + 1;

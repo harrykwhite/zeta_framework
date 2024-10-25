@@ -57,8 +57,7 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
     }
 
     // Clean user asset data.
-    if (cleanup_data->user_font_data && cleanup_data->user_font_data->font_count &&
-        cleanup_data->user_font_data->tex_gl_ids)
+    if (cleanup_data->user_font_data && cleanup_data->user_font_data->font_count && cleanup_data->user_font_data->tex_gl_ids)
     {
         glDeleteTextures(cleanup_data->user_font_data->font_count, cleanup_data->user_font_data->tex_gl_ids);
     }
@@ -105,8 +104,7 @@ static void glfw_window_pos_callback(GLFWwindow *glfw_window, int x, int y)
     callback_data->window_state->pos = zfw_create_vec_2d_i(x, y);
 }
 
-static void glfw_key_callback(GLFWwindow *glfw_window, int glfw_key_code, int glfw_scancode, int glfw_action,
-                              int glfw_mods)
+static void glfw_key_callback(GLFWwindow *glfw_window, int glfw_key_code, int glfw_scancode, int glfw_action, int glfw_mods)
 {
     if (glfw_action == GLFW_REPEAT)
     {
@@ -160,14 +158,12 @@ static void glfw_joystick_callback(int glfw_joystick_index, int glfw_event)
 {
     glfw_window_callback_data_t *const callback_data = glfwGetWindowUserPointer(glfwGetCurrentContext());
 
-    if (glfw_event == GLFW_DISCONNECTED &&
-        callback_data->input_state->gamepad_glfw_joystick_index == glfw_joystick_index)
+    if (glfw_event == GLFW_DISCONNECTED && callback_data->input_state->gamepad_glfw_joystick_index == glfw_joystick_index)
     {
         zfw_reset_gamepad_state(callback_data->input_state);
         zfw_log("Gamepad with GLFW joystick index %d was disconnected.", glfw_joystick_index);
     }
-    else if (glfw_event == GLFW_CONNECTED && callback_data->input_state->gamepad_glfw_joystick_index == -1 &&
-             glfwJoystickIsGamepad(glfw_joystick_index))
+    else if (glfw_event == GLFW_CONNECTED && callback_data->input_state->gamepad_glfw_joystick_index == -1 && glfwJoystickIsGamepad(glfw_joystick_index))
     {
         zfw_reset_gamepad_state(callback_data->input_state);
         callback_data->input_state->gamepad_glfw_joystick_index = glfw_joystick_index;
@@ -223,9 +219,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-    GLFWwindow *const glfw_window =
-        glfwCreateWindow(user_run_info->init_window_size.x, user_run_info->init_window_size.y,
-                         user_run_info->init_window_title, NULL, NULL);
+    GLFWwindow *const glfw_window = glfwCreateWindow(user_run_info->init_window_size.x, user_run_info->init_window_size.y, user_run_info->init_window_title, NULL, NULL);
 
     if (!glfw_window)
     {
@@ -303,8 +297,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         cleanup_data.user_font_data = &user_font_data;
 
         zfw_log("Retrieving user asset data from \"%s\"...", ZFW_ASSETS_FILE_NAME);
-        const zfw_bool_t asset_data_read_successful = zfw_retrieve_user_asset_data_from_assets_file(
-            &user_tex_data, &user_shader_prog_data, &user_font_data, assets_file_fs, &main_mem_arena);
+        const zfw_bool_t asset_data_read_successful = zfw_retrieve_user_asset_data_from_assets_file(&user_tex_data, &user_shader_prog_data, &user_font_data, assets_file_fs, &main_mem_arena);
 
         fclose(assets_file_fs);
 
@@ -318,10 +311,8 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     // Initialize built-in shader programs.
     zfw_builtin_shader_prog_data_t builtin_shader_prog_data = {0};
 
-    zfw_gen_shader_prog(&builtin_shader_prog_data.sprite_quad_prog_gl_id, ZFW_BUILTIN_SPRITE_QUAD_VERT_SHADER_SRC,
-                        ZFW_BUILTIN_SPRITE_QUAD_FRAG_SHADER_SRC);
-    zfw_gen_shader_prog(&builtin_shader_prog_data.char_quad_prog_gl_id, ZFW_BUILTIN_CHAR_QUAD_VERT_SHADER_SRC,
-                        ZFW_BUILTIN_CHAR_QUAD_FRAG_SHADER_SRC);
+    zfw_gen_shader_prog(&builtin_shader_prog_data.sprite_quad_prog_gl_id, ZFW_BUILTIN_SPRITE_QUAD_VERT_SHADER_SRC, ZFW_BUILTIN_SPRITE_QUAD_FRAG_SHADER_SRC);
+    zfw_gen_shader_prog(&builtin_shader_prog_data.char_quad_prog_gl_id, ZFW_BUILTIN_CHAR_QUAD_VERT_SHADER_SRC, ZFW_BUILTIN_CHAR_QUAD_FRAG_SHADER_SRC);
 
     zfw_log("Initialized built-in shader programs!");
 
@@ -366,17 +357,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     glfwShowWindow(glfw_window);
 
     // Perform the restart loop.
-    zfw_bool_t restart = ZFW_FALSE; /* Represents whether or not to break out of the main loop and restart the game.
-                                       This is modifiable by the user in their game functions through a pointer. */
-
-    zfw_bool_t user_window_fullscreen =
-        user_run_info->init_window_fullscreen; /* Represents whether or not the user wants the window to be in
-                                                  fullscreen, assignable by them through pointers passed into their game
-                                                  functions. The actual state will not be updated until a specific point
-                                                  in the main loop. */
-
-    zfw_input_state_t last_tick_input_state = {0}; /* This is to be a copy of the input state at the point of the last
-                                                      tick. */
+    zfw_bool_t restart = ZFW_FALSE; // Represents whether or not to break out of the main loop and restart the game. This is modifiable by the user in their game functions through a pointer.
+    zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen; // Represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state will not be updated until a specific point in the main loop.
+    zfw_input_state_t last_tick_input_state = {0}; // This is to be a copy of the input state at the point of the last tick.
 
     zfw_user_func_data_t user_func_data;
     user_func_data.main_mem_arena = &main_mem_arena;
@@ -392,9 +375,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     user_func_data.char_batch_group = &char_batch_group;
     user_func_data.view_state = &view_state;
 
-    window_state_t window_prefullscreen_state; /* This is to be a copy of the window state prior to switching from
-                                                  windowed mode to fullscreen, so that this state can be returned to
-                                                  when switching back. */
+    window_state_t window_prefullscreen_state; // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
 
     zfw_log("Entering the restart loop...");
 
@@ -417,8 +398,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         double frame_time_last = glfwGetTime();
         const int target_ticks_per_sec = 60;
         const double target_tick_interval = 1.0 / target_ticks_per_sec;
-        double frame_time_interval_accum = target_tick_interval; /* (The assignment here ensures that a tick is always
-                                                                    run on the first frame.) */
+        double frame_time_interval_accum = target_tick_interval; // The assignment here ensures that a tick is always run on the first frame.
 
         zfw_bool_t glfw_window_should_close;
 
@@ -431,8 +411,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             glfwPollEvents();
 
             // If the user has defined a window resize function and the window has been resized, call the function.
-            if (user_run_info->on_window_resize_func &&
-                (window_state.size.x != window_size_last.x || window_state.size.y != window_size_last.y))
+            if (user_run_info->on_window_resize_func && (window_state.size.x != window_size_last.x || window_state.size.y != window_size_last.y))
             {
                 user_func_data.window_size = window_state.size;
                 user_run_info->on_window_resize_func(user_run_info->user_ptr, &user_func_data);
@@ -449,8 +428,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
                     for (int i = 0; i < ZFW_GAMEPAD_BUTTON_CODE_COUNT; i++)
                     {
-                        input_state.gamepad_buttons_down_bits |=
-                            (zfw_gamepad_buttons_down_bits_t)(glfw_gamepad_state.buttons[i] == GLFW_PRESS) << i;
+                        input_state.gamepad_buttons_down_bits |= (zfw_gamepad_buttons_down_bits_t)(glfw_gamepad_state.buttons[i] == GLFW_PRESS) << i;
                     }
 
                     for (int i = 0; i < ZFW_GAMEPAD_AXIS_CODE_COUNT; i++)
@@ -460,12 +438,10 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                 }
                 else
                 {
-                    zfw_log_error("Failed to retrieve the state of gamepad with GLFW joystick index %d.",
-                                  input_state.gamepad_glfw_joystick_index);
+                    zfw_log_error("Failed to retrieve the state of gamepad with GLFW joystick index %d.", input_state.gamepad_glfw_joystick_index);
                     zfw_reset_gamepad_state(&input_state);
                 }
             }
-            //
 
             const double frame_time = glfwGetTime();
             double frame_time_change = frame_time - frame_time_last;
@@ -480,7 +456,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             {
                 frame_time_change = 0.0;
             }
-            //
 
             frame_time_interval_accum += frame_time_change;
             frame_time_last = frame_time;
@@ -492,8 +467,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                 // Run the ticks.
                 for (int i = 0; i < tick_count; i++)
                 {
-                    user_run_info->on_tick_func(user_run_info->user_ptr, &user_func_data, tick_count,
-                                                frame_time_interval_accum);
+                    user_run_info->on_tick_func(user_run_info->user_ptr, &user_func_data, tick_count, frame_time_interval_accum);
                     frame_time_interval_accum -= target_tick_interval;
                 }
 
@@ -517,8 +491,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                             window_prefullscreen_state = window_state;
 
                             const GLFWvidmode *glfw_video_mode = glfwGetVideoMode(glfw_primary_monitor);
-                            glfwSetWindowMonitor(glfw_window, glfw_primary_monitor, 0, 0, glfw_video_mode->width,
-                                                 glfw_video_mode->height, glfw_video_mode->refreshRate);
+                            glfwSetWindowMonitor(glfw_window, glfw_primary_monitor, 0, 0, glfw_video_mode->width, glfw_video_mode->height, glfw_video_mode->refreshRate);
                         }
                         else
                         {
@@ -528,9 +501,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                     }
                     else
                     {
-                        glfwSetWindowMonitor(glfw_window, NULL, window_prefullscreen_state.pos.x,
-                                             window_prefullscreen_state.pos.y, window_prefullscreen_state.size.x,
-                                             window_prefullscreen_state.size.y, 0);
+                        glfwSetWindowMonitor(glfw_window, NULL, window_prefullscreen_state.pos.x, window_prefullscreen_state.pos.y, window_prefullscreen_state.size.x, window_prefullscreen_state.size.y, 0);
                     }
 
                     window_state.fullscreen = user_window_fullscreen;
@@ -546,14 +517,11 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                 glClearColor(0.2f, 0.075f, 0.15f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
 
-                zfw_render_sprite_and_character_batches(sprite_batch_groups, &char_batch_group, &view_state,
-                                                        window_state.size, &user_tex_data, &user_font_data,
-                                                        &builtin_shader_prog_data);
+                zfw_render_sprite_and_character_batches(sprite_batch_groups, &char_batch_group, &view_state, window_state.size, &user_tex_data, &user_font_data, &builtin_shader_prog_data);
 
                 glfwSwapBuffers(glfw_window);
             }
         }
-        //
 
         if (!restart || glfw_window_should_close)
         {
@@ -562,7 +530,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
         restart = ZFW_FALSE;
     };
-    //
 
     clean_game(&cleanup_data);
 

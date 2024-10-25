@@ -13,14 +13,11 @@ typedef struct
     int byte_count;
 } zfw_bitset_t;
 
-int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits, const int bit_count,
-                                                   const zfw_bool_t active);
+int zfw_get_index_of_first_bit_with_activity_state(const zfw_bits_t *const bits, const int bit_count, const zfw_bool_t active);
 
-zfw_bool_t zfw_init_bitset_in_mem_arena(zfw_bitset_t *const bitset, const int bit_count,
-                                        zfw_mem_arena_t *const mem_arena);
+zfw_bool_t zfw_init_bitset_in_mem_arena(zfw_bitset_t *const bitset, const int bit_count, zfw_mem_arena_t *const mem_arena);
 int zfw_get_first_inactive_bitset_bit_index(const zfw_bitset_t *const bitset);
-int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_index,
-                                                     const int end_bit_index);
+int zfw_get_first_inactive_bitset_bit_index_in_range(const zfw_bitset_t *const bitset, const int begin_bit_index, const int end_bit_index);
 zfw_bool_t zfw_is_bitset_fully_active(const zfw_bitset_t *const bitset);
 zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset);
 

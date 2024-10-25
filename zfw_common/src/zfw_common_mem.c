@@ -23,8 +23,7 @@ void *zfw_mem_arena_alloc(zfw_mem_arena_t *const mem_arena, const int size)
 {
     if (mem_arena->buf_offs + size > mem_arena->buf_size)
     {
-        zfw_log_error("Attempting to allocate %d bytes in a memory arena with only %d byte(s) remaining!", size,
-                      mem_arena->buf_size - mem_arena->buf_offs);
+        zfw_log_error("Attempting to allocate %d bytes in a memory arena with only %d byte(s) remaining!", size, mem_arena->buf_size - mem_arena->buf_offs);
         return NULL;
     }
 

@@ -4,3 +4,4 @@ FixNamespaceComments: false
 InsertNewlineAtEOF: true
 AllowShortCaseLabelsOnASingleLine: true
 IndentCaseLabels: true
+ColumnLimit: 100

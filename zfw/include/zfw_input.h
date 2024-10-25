@@ -148,60 +148,44 @@ inline zfw_bool_t zfw_is_key_down(const zfw_key_code_t key_code, const zfw_input
     return (input_state->keys_down_bits & ((zfw_keys_down_bits_t)1 << key_code)) != 0;
 }
 
-inline zfw_bool_t zfw_is_key_pressed(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state,
-                                     const zfw_input_state_t *const input_state_last)
+inline zfw_bool_t zfw_is_key_pressed(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
 {
     return zfw_is_key_down(key_code, input_state) && !zfw_is_key_down(key_code, input_state_last);
 }
 
-inline zfw_bool_t zfw_is_key_released(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state,
-                                      const zfw_input_state_t *const input_state_last)
+inline zfw_bool_t zfw_is_key_released(const zfw_key_code_t key_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
 {
     return !zfw_is_key_down(key_code, input_state) && zfw_is_key_down(key_code, input_state_last);
 }
 
-inline zfw_bool_t zfw_is_mouse_button_down(const zfw_mouse_button_code_t button_code,
-                                           const zfw_input_state_t *const input_state)
+inline zfw_bool_t zfw_is_mouse_button_down(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state)
 {
     return (input_state->mouse_buttons_down_bits & ((zfw_mouse_buttons_down_bits_t)1 << button_code)) != 0;
 }
 
-inline zfw_bool_t zfw_is_mouse_button_pressed(const zfw_mouse_button_code_t button_code,
-                                              const zfw_input_state_t *const input_state,
-                                              const zfw_input_state_t *const input_state_last)
+inline zfw_bool_t zfw_is_mouse_button_pressed(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
 {
-    return zfw_is_mouse_button_down(button_code, input_state) &&
-           !zfw_is_mouse_button_down(button_code, input_state_last);
+    return zfw_is_mouse_button_down(button_code, input_state) && !zfw_is_mouse_button_down(button_code, input_state_last);
 }
 
-inline zfw_bool_t zfw_is_mouse_button_released(const zfw_mouse_button_code_t button_code,
-                                               const zfw_input_state_t *const input_state,
-                                               const zfw_input_state_t *const input_state_last)
+inline zfw_bool_t zfw_is_mouse_button_released(const zfw_mouse_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
 {
-    return !zfw_is_mouse_button_down(button_code, input_state) &&
-           zfw_is_mouse_button_down(button_code, input_state_last);
+    return !zfw_is_mouse_button_down(button_code, input_state) && zfw_is_mouse_button_down(button_code, input_state_last);
 }
 
-inline zfw_bool_t zfw_is_gamepad_button_down(const zfw_gamepad_button_code_t button_code,
-                                             const zfw_input_state_t *const input_state)
+inline zfw_bool_t zfw_is_gamepad_button_down(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state)
 {
     return (input_state->gamepad_buttons_down_bits & ((zfw_gamepad_buttons_down_bits_t)1 << button_code)) != 0;
 }
 
-inline zfw_bool_t zfw_is_gamepad_button_pressed(const zfw_gamepad_button_code_t button_code,
-                                                const zfw_input_state_t *const input_state,
-                                                const zfw_input_state_t *const input_state_last)
+inline zfw_bool_t zfw_is_gamepad_button_pressed(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
 {
-    return zfw_is_gamepad_button_down(button_code, input_state) &&
-           !zfw_is_gamepad_button_down(button_code, input_state_last);
+    return zfw_is_gamepad_button_down(button_code, input_state) && !zfw_is_gamepad_button_down(button_code, input_state_last);
 }
 
-inline zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t button_code,
-                                                 const zfw_input_state_t *const input_state,
-                                                 const zfw_input_state_t *const input_state_last)
+inline zfw_bool_t zfw_is_gamepad_button_released(const zfw_gamepad_button_code_t button_code, const zfw_input_state_t *const input_state, const zfw_input_state_t *const input_state_last)
 {
-    return !zfw_is_gamepad_button_down(button_code, input_state) &&
-           zfw_is_gamepad_button_down(button_code, input_state_last);
+    return !zfw_is_gamepad_button_down(button_code, input_state) && zfw_is_gamepad_button_down(button_code, input_state_last);
 }
 
 #endif

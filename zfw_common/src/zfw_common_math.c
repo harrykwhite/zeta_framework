@@ -181,8 +181,7 @@ void zfw_init_identity_matrix_4x4(zfw_matrix_4x4_t *const mat)
     }
 }
 
-void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, const float right, const float bottom,
-                               const float top, const float near, const float far)
+void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, const float right, const float bottom, const float top, const float near, const float far)
 {
     memset(mat, 0, sizeof(*mat));
 
