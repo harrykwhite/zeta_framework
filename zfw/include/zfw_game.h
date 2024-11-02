@@ -44,6 +44,8 @@ typedef struct
     zfw_bool_t init_window_fullscreen;
     zfw_bool_t window_resizable;
 
+    zfw_bool_t hide_cursor;
+
     zfw_on_game_init_user_func_t on_init_func;
     zfw_on_game_tick_user_func_t on_tick_func;
     zfw_on_window_resize_user_func_t on_window_resize_func;

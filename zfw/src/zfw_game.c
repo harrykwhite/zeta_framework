@@ -273,6 +273,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     glfwSetCursorPosCallback(glfw_window, glfw_mouse_pos_callback);
     glfwSetJoystickCallback(glfw_joystick_callback);
 
+    // Set cursor visibility.
+    glfwSetInputMode(glfw_window, GLFW_CURSOR, user_run_info->hide_cursor ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
+
     // Set up OpenGL function pointers.
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
