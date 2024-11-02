@@ -81,7 +81,7 @@ typedef struct
 typedef struct
 {
     zfw_render_layer_char_batch_bits_t batch_init_bits[ZFW_RENDER_LAYER_LIMIT]; // Each bit represents whether the corresponding batch has been
-                                                                                // initialized.
+                                                                                // initialised.
     zfw_render_layer_char_batch_bits_t batch_activity_bits[ZFW_RENDER_LAYER_LIMIT];
 
     GLuint *vert_array_gl_ids;
@@ -123,8 +123,7 @@ zfw_bool_t zfw_init_char_batch_group(zfw_char_batch_group_t *const batch_group, 
 void zfw_clean_char_batch_group(zfw_char_batch_group_t *const batch_group);
 void zfw_set_char_batch_group_defaults(zfw_char_batch_group_t *const batch_group);
 zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw_char_batch_group_t *const batch_group, zfw_mem_arena_t *const main_mem_arena);
-zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_group_t *const batch_group,
-                                                const zfw_user_font_data_t *const user_font_data); // IDEA: Have a faster alternative to this to be used when no alignment is needed.
+zfw_bool_t zfw_write_to_render_layer_char_batch(const zfw_char_batch_key_t key, const char *const text, const zfw_font_hor_align_t hor_align, const zfw_font_vert_align_t vert_align, zfw_char_batch_group_t *const batch_group, const zfw_user_font_data_t *const user_font_data);
 zfw_bool_t zfw_clear_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_group);
 zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_char_batch_group_t *const batch_group);
 zfw_char_batch_key_t zfw_create_char_batch_key(const int layer_index, const int batch_index);

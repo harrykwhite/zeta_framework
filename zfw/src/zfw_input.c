@@ -4,6 +4,34 @@
 #include <GLFW/glfw3.h>
 #include <zfw_common_debug.h>
 
+void zfw_update_gamepad_state(zfw_input_state_t *const input_state)
+{
+    if (input_state->gamepad_glfw_joystick_index != -1)
+    {
+        GLFWgamepadstate glfw_gamepad_state;
+
+        if (glfwGetGamepadState(input_state->gamepad_glfw_joystick_index, &glfw_gamepad_state))
+        {
+            input_state->gamepad_buttons_down_bits = 0;
+
+            for (int i = 0; i < ZFW_GAMEPAD_BUTTON_CODE_COUNT; i++)
+            {
+                input_state->gamepad_buttons_down_bits |= (zfw_gamepad_buttons_down_bits_t)(glfw_gamepad_state.buttons[i] == GLFW_PRESS) << i;
+            }
+
+            for (int i = 0; i < ZFW_GAMEPAD_AXIS_CODE_COUNT; i++)
+            {
+                input_state->gamepad_axis_values[i] = glfw_gamepad_state.axes[i];
+            }
+        }
+        else
+        {
+            zfw_log_error("Failed to retrieve the state of gamepad with GLFW joystick index %d.", input_state->gamepad_glfw_joystick_index);
+            zfw_reset_gamepad_state(&input_state);
+        }
+    }
+}
+
 void zfw_reset_gamepad_state(zfw_input_state_t *const input_state)
 {
     input_state->gamepad_glfw_joystick_index = -1;

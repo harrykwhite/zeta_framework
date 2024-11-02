@@ -104,7 +104,7 @@ zfw_bool_t zfw_is_bitset_clear(const zfw_bitset_t *const bitset)
 {
     for (int i = 0; i < bitset->byte_count; i++)
     {
-        if (bitset->bytes[i] != 0x00)
+        if (bitset->bytes[i])
         {
             return ZFW_FALSE;
         }

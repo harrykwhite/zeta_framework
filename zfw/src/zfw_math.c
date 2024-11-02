@@ -9,6 +9,7 @@ static zfw_bits_t g_poly_pt_activity[ZFW_BIT_COUNT_AS_BYTE_COUNT(ZFW_POLY_PT_LIM
 
 void zfw_gen_poly(zfw_poly_t *const poly, const int pt_count)
 {
+    // TODO: Improve this silly algorithm. Would be better to just check whether entire bytes are free instead of checking one bit at a time. Have the alignment correlate with byte size and count.
     poly->pt_count = pt_count;
 
     for (int i = 0; i < ZFW_POLY_PT_LIMIT; i += POLY_PT_ALIGNMENT)
@@ -61,8 +62,8 @@ void zfw_set_poly_pt(const zfw_poly_t poly, const int rel_pt_index, const zfw_ve
 
 zfw_bool_t zfw_is_pt_in_poly(const zfw_vec_2d_t pt, const zfw_poly_t poly)
 {
-    // Count the number of intersections there are with the polygon's edges when a line is cast from the point to the
-    // right. The point is in the polygon if and only if the count is odd.
+    // Count the number of intersections there are with the polygon's edges when a line is cast from the point to the right. The point is in the polygon if and
+    // only if the count is odd.
     zfw_bool_t in_poly = ZFW_FALSE;
 
     for (int i = 0; i < poly.pt_count; ++i)
@@ -120,7 +121,6 @@ zfw_bool_t zfw_do_polys_inters(const zfw_poly_t poly_a, const zfw_poly_t poly_b)
             return ZFW_TRUE;
         }
     }
-    //
 
     return ZFW_FALSE;
 }

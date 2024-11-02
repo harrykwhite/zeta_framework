@@ -34,6 +34,8 @@ typedef struct
     zfw_input_state_t *const input_state;
 } glfw_window_callback_data_t;
 
+const zfw_color_t k_default_bg_color = {0.2f, 0.075f, 0.15f, 1.0f};
+
 static void clean_game(game_cleanup_data_t *const cleanup_data)
 {
     zfw_log("Cleaning up...");
@@ -75,7 +77,7 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
         glDeleteTextures(cleanup_data->user_tex_data->tex_count, cleanup_data->user_tex_data->gl_ids);
     }
 
-    // Uninitialize GLFW.
+    // Uninitialise GLFW.
     if (cleanup_data->glfw_window)
     {
         glfwDestroyWindow(cleanup_data->glfw_window);
@@ -174,6 +176,10 @@ static void glfw_joystick_callback(int glfw_joystick_index, int glfw_event)
 
 zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 {
+    //
+    // Initialisation
+    //
+
     // Ensure data type sizes meet requirements before proceeding.
     if (!zfw_check_data_type_sizes())
     {
@@ -182,14 +188,14 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     zfw_log("Data type sizes meet requirements.");
 
-    // Initialize the random number generator.
+    // Initialise the random number generator.
     srand(time(NULL));
     zfw_log("Initialized the random number generator.");
 
     // Create and zero-out the game cleanup data struct.
     game_cleanup_data_t cleanup_data = {0};
 
-    // Initialize the memory arena.
+    // Initialise the memory arena.
     zfw_mem_arena_t main_mem_arena;
 
     if (!zfw_init_mem_arena(&main_mem_arena, ZFW_MAIN_MEM_ARENA_SIZE))
@@ -203,7 +209,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     cleanup_data.main_mem_arena = &main_mem_arena;
 
-    // Initialize GLFW.
+    // Initialise GLFW.
     if (!glfwInit())
     {
         zfw_log_error("Failed to initialize GLFW!");
@@ -234,12 +240,12 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     glfwMakeContextCurrent(glfw_window);
 
-    // Initialize the window state.
+    // Initialise the window state.
     window_state_t window_state = {0};
     glfwGetWindowSize(glfw_window, &window_state.size.x, &window_state.size.y);
     glfwGetWindowPos(glfw_window, &window_state.pos.x, &window_state.pos.y);
 
-    // Initialize the input state.
+    // Initialise the input state.
     zfw_input_state_t input_state = {0};
 
     input_state.gamepad_glfw_joystick_index = -1;
@@ -277,7 +283,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     zfw_log("Successfully set up OpenGL function pointers!");
 
-    // Initialize user asset data.
+    // Initialise user asset data.
     zfw_user_tex_data_t user_tex_data = {0};
     zfw_user_shader_prog_data_t user_shader_prog_data = {0};
     zfw_user_font_data_t user_font_data = {0};
@@ -308,7 +314,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         }
     }
 
-    // Initialize built-in shader programs.
+    // Initialise built-in shader programs.
     zfw_builtin_shader_prog_data_t builtin_shader_prog_data = {0};
 
     zfw_gen_shader_prog(&builtin_shader_prog_data.sprite_quad_prog_gl_id, ZFW_BUILTIN_SPRITE_QUAD_VERT_SHADER_SRC, ZFW_BUILTIN_SPRITE_QUAD_FRAG_SHADER_SRC);
@@ -356,11 +362,22 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_log("Showing the GLFW window...");
     glfwShowWindow(glfw_window);
 
-    // Perform the restart loop.
-    zfw_bool_t restart = ZFW_FALSE; // Represents whether or not to break out of the main loop and restart the game. This is modifiable by the user in their game functions through a pointer.
-    zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen; // Represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state will not be updated until a specific point in the main loop.
-    zfw_input_state_t last_tick_input_state = {0}; // This is to be a copy of the input state at the point of the last tick.
+    //
+    // Restart Loop
+    //
 
+    // This represents whether or not to break out of the main loop and restart the game (i.e. do another iteration of the restart loop). This
+    // is modifiable by the user in their game functions through a pointer.
+    zfw_bool_t restart = ZFW_FALSE;
+
+    // This represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state
+    // will not be updated until a specific point in the main loop.
+    zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen;
+
+    // This is to be a copy of the input state at the point of the last tick.
+    zfw_input_state_t last_tick_input_state = {0};
+
+    // This is the data provided to the user in their defined game functions.
     zfw_user_func_data_t user_func_data;
     user_func_data.main_mem_arena = &main_mem_arena;
     user_func_data.restart = &restart;
@@ -375,7 +392,8 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     user_func_data.char_batch_group = &char_batch_group;
     user_func_data.view_state = &view_state;
 
-    window_state_t window_prefullscreen_state; // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
+    // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
+    window_state_t window_prefullscreen_state;
 
     zfw_log("Entering the restart loop...");
 
@@ -391,18 +409,20 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
         zfw_set_view_state_defaults(&view_state);
 
-        // Run the user-defined game initialization function.
+        // Run the user-defined game initialisation function.
         user_run_info->on_init_func(user_run_info->user_ptr, &user_func_data);
 
-        // Perform the main loop.
+        //
+        // Main Loop
+        //
         double frame_time_last = glfwGetTime();
         const int target_ticks_per_sec = 60;
         const double target_tick_interval = 1.0 / target_ticks_per_sec;
         double frame_time_interval_accum = target_tick_interval; // The assignment here ensures that a tick is always run on the first frame.
 
-        zfw_bool_t glfw_window_should_close;
-
         zfw_log("Entering the main loop...");
+
+        zfw_bool_t glfw_window_should_close;
 
         while (!(glfw_window_should_close = glfwWindowShouldClose(glfw_window)) && !restart)
         {
@@ -410,38 +430,14 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
             glfwPollEvents();
 
-            // If the user has defined a window resize function and the window has been resized, call the function.
             if (user_run_info->on_window_resize_func && (window_state.size.x != window_size_last.x || window_state.size.y != window_size_last.y))
             {
+                // The user has defined a window resize function and the window has been resized, so call the function.
                 user_func_data.window_size = window_state.size;
                 user_run_info->on_window_resize_func(user_run_info->user_ptr, &user_func_data);
             }
 
-            // Refresh the gamepad state.
-            if (input_state.gamepad_glfw_joystick_index != -1)
-            {
-                GLFWgamepadstate glfw_gamepad_state;
-
-                if (glfwGetGamepadState(input_state.gamepad_glfw_joystick_index, &glfw_gamepad_state))
-                {
-                    input_state.gamepad_buttons_down_bits = 0;
-
-                    for (int i = 0; i < ZFW_GAMEPAD_BUTTON_CODE_COUNT; i++)
-                    {
-                        input_state.gamepad_buttons_down_bits |= (zfw_gamepad_buttons_down_bits_t)(glfw_gamepad_state.buttons[i] == GLFW_PRESS) << i;
-                    }
-
-                    for (int i = 0; i < ZFW_GAMEPAD_AXIS_CODE_COUNT; i++)
-                    {
-                        input_state.gamepad_axis_values[i] = glfw_gamepad_state.axes[i];
-                    }
-                }
-                else
-                {
-                    zfw_log_error("Failed to retrieve the state of gamepad with GLFW joystick index %d.", input_state.gamepad_glfw_joystick_index);
-                    zfw_reset_gamepad_state(&input_state);
-                }
-            }
+            zfw_update_gamepad_state(&input_state);
 
             const double frame_time = glfwGetTime();
             double frame_time_change = frame_time - frame_time_last;
@@ -460,6 +456,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             frame_time_interval_accum += frame_time_change;
             frame_time_last = frame_time;
 
+            // Calculate tick count and handle the case where at least one tick occurred.
             const int tick_count = (int)(frame_time_interval_accum / target_tick_interval);
 
             if (tick_count > 0)
@@ -514,7 +511,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
                 }
 
                 // Render.
-                glClearColor(0.2f, 0.075f, 0.15f, 1.0f);
+                glClearColor(k_default_bg_color.r, k_default_bg_color.g, k_default_bg_color.b, k_default_bg_color.a);
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 zfw_render_sprite_and_character_batches(sprite_batch_groups, &char_batch_group, &view_state, window_state.size, &user_tex_data, &user_font_data, &builtin_shader_prog_data);
@@ -523,13 +520,14 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
             }
         }
 
+        // Break out of the restart loop if a restart hasn't been requested, or if the window is closed.
         if (!restart || glfw_window_should_close)
         {
             break;
         }
 
-        restart = ZFW_FALSE;
-    };
+        restart = ZFW_FALSE; // By default, we will not restart in the next iteration.
+    }
 
     clean_game(&cleanup_data);
 

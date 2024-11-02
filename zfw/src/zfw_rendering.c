@@ -224,7 +224,7 @@ zfw_bool_t zfw_init_sprite_batch_group(zfw_sprite_batch_group_t *const batch_gro
         return ZFW_FALSE;
     }
 
-    // Initialize the slot activity bitset.
+    // Initialise the slot activity bitset.
     zfw_init_bitset_in_mem_arena(&batch_group->slot_activity, ZFW_SPRITE_BATCH_SLOT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT, main_mem_arena);
 
     return ZFW_TRUE;
@@ -317,7 +317,7 @@ zfw_sprite_batch_slot_key_t zfw_take_render_layer_sprite_batch_slot(const zfw_sp
 
     if (first_inactive_batch_index != -1)
     {
-        // Initialize and activate a new sprite batch. If successful, try this all again.
+        // Initialise and activate a new sprite batch. If successful, try this all again.
         if (init_and_activate_render_layer_sprite_batch(layer_index, first_inactive_batch_index, &batch_groups[batch_group_id], main_mem_arena))
         {
             return zfw_take_render_layer_sprite_batch_slot(batch_group_id, layer_index, user_tex_index, batch_groups, main_mem_arena);
@@ -408,7 +408,7 @@ void zfw_take_multiple_render_layer_sprite_batch_slots(zfw_sprite_batch_slot_key
 
     if (first_inactive_batch_index != -1)
     {
-        // Initialize and activate a new sprite batch. If successful, try this all again.
+        // Initialise and activate a new sprite batch. If successful, try this all again.
         if (init_and_activate_render_layer_sprite_batch(layer_index, first_inactive_batch_index, &batch_groups[batch_group_id], main_mem_arena))
         {
             zfw_take_multiple_render_layer_sprite_batch_slots(slot_keys + slots_found_count, slot_key_count - slots_found_count, batch_group_id, layer_index, user_tex_index, batch_groups, main_mem_arena);
@@ -554,7 +554,7 @@ zfw_bool_t zfw_free_render_layer_sprite_batch_slot(const zfw_sprite_batch_slot_k
 
 zfw_sprite_batch_slot_key_t zfw_create_sprite_batch_slot_key(const int key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_COUNT])
 {
-    zfw_sprite_batch_slot_key_t slot_key = 1; // Initialize the key as active.
+    zfw_sprite_batch_slot_key_t slot_key = 1; // Initialise the key as active.
     int bit_index = 1;
 
     for (int i = 0; i < ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_COUNT; i++)
@@ -712,7 +712,7 @@ zfw_char_batch_key_t zfw_take_render_layer_char_batch(const int layer_index, zfw
 
         if (!(batch_group->batch_activity_bits[layer_index] & batch_bitmask))
         {
-            // Initialize the batch if not already done.
+            // Initialise the batch if not already done.
             if (!(batch_group->batch_init_bits[layer_index] & batch_bitmask))
             {
                 const int batch_group_batch_index = zfw_get_char_batch_group_batch_index(layer_index, i);
@@ -1001,7 +1001,7 @@ zfw_bool_t zfw_free_render_layer_char_batch(const zfw_char_batch_key_t key, zfw_
 
 zfw_char_batch_key_t zfw_create_char_batch_key(const int layer_index, const int batch_index)
 {
-    zfw_char_batch_key_t key = 1; // Initialize the key as active.
+    zfw_char_batch_key_t key = 1; // Initialise the key as active.
     key |= (zfw_char_batch_key_t)layer_index << 1;
     key |= (zfw_char_batch_key_t)batch_index << (1 + (int)log2(ZFW_RENDER_LAYER_LIMIT));
     return key;

@@ -285,12 +285,12 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         return ZFW_FALSE;
     }
 
-    // Initialize FreeType.
+    // Initialise FreeType.
     FT_Library ft_lib;
 
     if (FT_Init_FreeType(&ft_lib))
     {
-        zfw_log_error("Failed to initialize FreeType!");
+        zfw_log_error("Failed to initialise FreeType!");
         return ZFW_FALSE;
     }
 
@@ -368,7 +368,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
         tex_sizes[i].x = ZFW_MIN(ideal_tex_width, max_tex_width);
         tex_sizes[i].y = line_heights[i] * ((ideal_tex_width / max_tex_width) + 1);
 
-        // Initialize the pixel data of the font texture by setting all the
+        // Initialise the pixel data of the font texture by setting all the
         // pixels to be transparent white.
         const int tex_px_data_size = tex_sizes[i].x * tex_sizes[i].y * ZFW_FONT_TEX_CHANNEL_COUNT;
         tex_px_datas[i] = zfw_mem_arena_alloc(&main_mem_arena, tex_px_data_size);
@@ -505,7 +505,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Initialize the source asset file path buffer with the source directory.
+    // Initialise the source asset file path buffer with the source directory.
     char src_asset_file_path_buf[SRC_ASSET_FILE_PATH_BUF_SIZE] = {0};
     const int src_asset_file_path_start_len = snprintf(src_asset_file_path_buf, SRC_ASSET_FILE_PATH_BUF_SIZE, "%s/", src_dir);
 
