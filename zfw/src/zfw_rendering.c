@@ -252,6 +252,7 @@ void zfw_set_sprite_batch_group_defaults(zfw_sprite_batch_group_t *const batch_g
 {
     memset(batch_group->batch_activity_bits, 0, sizeof(batch_group->batch_activity_bits));
     memset(batch_group->tex_units, 0, sizeof(*batch_group->tex_units) * ZFW_SPRITE_BATCH_TEX_UNIT_LIMIT * ZFW_RENDER_LAYER_SPRITE_BATCH_LIMIT * ZFW_RENDER_LAYER_LIMIT);
+    zfw_clear_bitset(&batch_group->slot_activity);
 }
 
 zfw_sprite_batch_slot_key_t zfw_take_render_layer_sprite_batch_slot(const zfw_sprite_batch_group_id_t batch_group_id, const int layer_index, const int user_tex_index, zfw_sprite_batch_group_t batch_groups[ZFW_SPRITE_BATCH_GROUP_COUNT], zfw_mem_arena_t *const main_mem_arena)
@@ -376,29 +377,31 @@ void zfw_take_multiple_render_layer_sprite_batch_slots(zfw_sprite_batch_slot_key
 
         for (int j = 0; j < ZFW_SPRITE_BATCH_SLOT_LIMIT; j++)
         {
-            if (!zfw_is_bitset_bit_active(&batch_groups[batch_group_id].slot_activity, slot_activity_bitset_begin_bit_index + j))
+            if (zfw_is_bitset_bit_active(&batch_groups[batch_group_id].slot_activity, slot_activity_bitset_begin_bit_index + j))
             {
-                // Take the slot and add a key.
-                zfw_activate_bitset_bit(&batch_groups[batch_group_id].slot_activity, slot_activity_bitset_begin_bit_index + j);
+                continue;
+            }
 
-                batch_groups[batch_group_id].tex_units[batch_group_tex_unit_index].user_tex_index = user_tex_index;
-                batch_groups[batch_group_id].tex_units[batch_group_tex_unit_index].count++;
+            // Take the slot and add a key.
+            zfw_activate_bitset_bit(&batch_groups[batch_group_id].slot_activity, slot_activity_bitset_begin_bit_index + j);
 
-                int slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_COUNT];
-                slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_GROUP_INDEX] = batch_group_id;
-                slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__LAYER_INDEX] = layer_index;
-                slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_INDEX] = i;
-                slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__SLOT_INDEX] = j;
-                slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT_INDEX] = tex_unit_index;
+            batch_groups[batch_group_id].tex_units[batch_group_tex_unit_index].user_tex_index = user_tex_index;
+            batch_groups[batch_group_id].tex_units[batch_group_tex_unit_index].count++;
 
-                slot_keys[slots_found_count] = zfw_create_sprite_batch_slot_key(slot_key_elems);
+            int slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_COUNT];
+            slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_GROUP_INDEX] = batch_group_id;
+            slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__LAYER_INDEX] = layer_index;
+            slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__BATCH_INDEX] = i;
+            slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__SLOT_INDEX] = j;
+            slot_key_elems[ZFW_SPRITE_BATCH_SLOT_KEY_ELEM_ID__TEX_UNIT_INDEX] = tex_unit_index;
 
-                slots_found_count++;
+            slot_keys[slots_found_count] = zfw_create_sprite_batch_slot_key(slot_key_elems);
 
-                if (slots_found_count == slot_key_count)
-                {
-                    return;
-                }
+            slots_found_count++;
+
+            if (slots_found_count == slot_key_count)
+            {
+                return;
             }
         }
     }
