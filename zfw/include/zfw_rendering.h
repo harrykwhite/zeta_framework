@@ -191,9 +191,9 @@ inline void zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key
     batch_group->blends[zfw_get_char_batch_group_batch_index(zfw_get_char_batch_slot_key_layer_index(key), zfw_get_char_batch_slot_key_batch_index(key))] = *blend;
 }
 
-inline zfw_vec_2d_t zfw_get_view_size(const zfw_view_state_t *const view_state)
+inline zfw_vec_2d_t zfw_get_view_size(const zfw_view_state_t *const view_state, const zfw_vec_2d_i_t window_size)
 {
-    return zfw_get_vec_2d_scaled(view_state->pos, 1.0f / view_state->scale);
+    return zfw_get_vec_2d_scaled(zfw_create_vec_2d(window_size.x, window_size.y), 1.0f / view_state->scale);
 }
 
 inline zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)
