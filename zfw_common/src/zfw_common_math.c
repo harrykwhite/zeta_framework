@@ -95,20 +95,27 @@ zfw_bool_t zfw_do_lines_inters(const zfw_line_t *const l1, const zfw_line_t *con
 
     // Check if l2a resides along l1.
     if (o_l1a_l1b_l2a == ZFW_ORIENTATION_ID__COLLINEAR && zfw_is_pt_in_line_rect(l2->a, l1))
+    {
         return ZFW_TRUE;
+    }
 
     // Check if l2b resides along l1.
     if (o_l1a_l1b_l2a == ZFW_ORIENTATION_ID__COLLINEAR && zfw_is_pt_in_line_rect(l2->b, l1))
+    {
         return ZFW_TRUE;
+    }
 
     // Check if l1a resides along l2.
     if (o_l1a_l1b_l2a == ZFW_ORIENTATION_ID__COLLINEAR && zfw_is_pt_in_line_rect(l1->a, l2))
+    {
         return ZFW_TRUE;
+    }
 
     // Check if l1b resides along l2.
     if (o_l1a_l1b_l2a == ZFW_ORIENTATION_ID__COLLINEAR && zfw_is_pt_in_line_rect(l1->a, l2))
+    {
         return ZFW_TRUE;
-    //
+    }
 
     return ZFW_FALSE;
 }
@@ -162,11 +169,17 @@ void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4])
 
         switch (i)
         {
-            case 1: edges[i].b.y += rect->h; break;
+            case 1:
+                edges[i].b.y += rect->h;
+                break;
 
-            case 2: edges[i].b.x -= rect->w; break;
+            case 2:
+                edges[i].b.x -= rect->w;
+                break;
 
-            case 3: edges[i].b.y -= rect->h; break;
+            case 3:
+                edges[i].b.y -= rect->h;
+                break;
         }
     }
 }

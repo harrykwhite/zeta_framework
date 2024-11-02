@@ -80,8 +80,7 @@ typedef struct
 
 typedef struct
 {
-    zfw_render_layer_char_batch_bits_t batch_init_bits[ZFW_RENDER_LAYER_LIMIT]; // Each bit represents whether the corresponding batch has been
-                                                                                // initialised.
+    zfw_render_layer_char_batch_bits_t batch_init_bits[ZFW_RENDER_LAYER_LIMIT]; // Each bit represents whether the corresponding batch has been initialised.
     zfw_render_layer_char_batch_bits_t batch_activity_bits[ZFW_RENDER_LAYER_LIMIT];
 
     GLuint *vert_array_gl_ids;
@@ -190,6 +189,11 @@ inline void zfw_set_render_layer_char_batch_scale(const zfw_char_batch_key_t key
 inline void zfw_set_render_layer_char_batch_blend(const zfw_char_batch_key_t key, const zfw_color_t *const blend, zfw_char_batch_group_t *const batch_group)
 {
     batch_group->blends[zfw_get_char_batch_group_batch_index(zfw_get_char_batch_slot_key_layer_index(key), zfw_get_char_batch_slot_key_batch_index(key))] = *blend;
+}
+
+inline zfw_vec_2d_t zfw_get_view_size(const zfw_view_state_t *const view_state)
+{
+    return zfw_get_vec_2d_scaled(view_state->pos, 1.0f / view_state->scale);
 }
 
 inline zfw_vec_2d_t zfw_get_view_to_screen_pos(const zfw_vec_2d_t pos, const zfw_view_state_t *const view_state)

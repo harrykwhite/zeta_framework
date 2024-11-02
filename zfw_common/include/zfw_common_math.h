@@ -153,6 +153,11 @@ inline float zfw_get_dir(const zfw_vec_2d_t v1, const zfw_vec_2d_t v2)
     return atan2f(-(v2.y - v1.y), v2.x - v1.x);
 }
 
+inline zfw_vec_2d_t zfw_get_dir_normal(const zfw_vec_2d_t v1, const zfw_vec_2d_t v2)
+{
+    return zfw_get_vec_2d_normalized(zfw_get_vec_2d_diff(v2, v1));
+}
+
 inline float zfw_get_line_gradient(const zfw_line_t *const line)
 {
     return (line->b.y - line->a.y) / (line->b.x - line->a.x);
