@@ -287,9 +287,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_log("Successfully set up OpenGL function pointers!");
 
     // Initialise user asset data.
-    zfw_user_tex_data_t user_tex_data = {0};
-    zfw_user_shader_prog_data_t user_shader_prog_data = {0};
-    zfw_user_font_data_t user_font_data = {0};
+    zfw_user_tex_data_t user_tex_data;
+    zfw_user_shader_prog_data_t user_shader_prog_data;
+    zfw_user_font_data_t user_font_data;
 
     {
         FILE *const assets_file_fs = fopen(ZFW_ASSETS_FILE_NAME, "rb");

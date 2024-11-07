@@ -31,7 +31,9 @@ void zfw_gen_shader_prog(GLuint *const shader_prog_gl_id, const char *const vert
 
 zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_tex_data_t *const tex_data, zfw_user_shader_prog_data_t *const shader_prog_data, zfw_user_font_data_t *const font_data, FILE *const assets_file_fs, zfw_mem_arena_t *const main_mem_arena)
 {
-    // Retrieve texture data.
+    //
+    // Texture Data
+    //
     fread(&tex_data->tex_count, sizeof(tex_data->tex_count), 1, assets_file_fs);
 
     if (tex_data->tex_count)
@@ -80,7 +82,9 @@ zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_tex_data_t *co
         }
     }
 
-    // Retrieve shader program data.
+    //
+    // Shader Program Data
+    //
     fread(&shader_prog_data->prog_count, sizeof(shader_prog_data->prog_count), 1, assets_file_fs);
 
     if (shader_prog_data->prog_count)
@@ -105,7 +109,9 @@ zfw_bool_t zfw_retrieve_user_asset_data_from_assets_file(zfw_user_tex_data_t *co
         }
     }
 
-    // Retrieve font data.
+    //
+    // Font Data
+    //
     fread(&font_data->font_count, sizeof(font_data->font_count), 1, assets_file_fs);
 
     if (font_data->font_count)
