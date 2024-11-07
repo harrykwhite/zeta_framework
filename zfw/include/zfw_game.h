@@ -15,8 +15,6 @@ typedef struct
 {
     zfw_mem_arena_t *main_mem_arena;
 
-    zfw_bool_t *restart;
-
     zfw_vec_2d_i_t window_size;
     zfw_bool_t *window_fullscreen;
 

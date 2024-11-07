@@ -365,14 +365,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_log("Showing the GLFW window...");
     glfwShowWindow(glfw_window);
 
-    //
-    // Restart Loop
-    //
-
-    // This represents whether or not to break out of the main loop and restart the game (i.e. do another iteration of the restart loop). This
-    // is modifiable by the user in their game functions through a pointer.
-    zfw_bool_t restart = ZFW_FALSE;
-
     // This represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state
     // will not be updated until a specific point in the main loop.
     zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen;
@@ -383,7 +375,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     // This is the data provided to the user in their defined game functions.
     zfw_user_func_data_t user_func_data;
     user_func_data.main_mem_arena = &main_mem_arena;
-    user_func_data.restart = &restart;
     user_func_data.window_size = window_state.size;
     user_func_data.window_fullscreen = &user_window_fullscreen;
     user_func_data.input_state = &input_state;
@@ -398,138 +389,123 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
     window_state_t window_prefullscreen_state;
 
-    zfw_log("Entering the restart loop...");
-
-    while (ZFW_TRUE)
+    // Set rendering defaults.
+    for (int i = 0; i < ZFW_SPRITE_BATCH_GROUP_COUNT; i++)
     {
-        // Set rendering defaults.
-        for (int i = 0; i < ZFW_SPRITE_BATCH_GROUP_COUNT; i++)
+        zfw_set_sprite_batch_group_defaults(&sprite_batch_groups[i]);
+    }
+
+    zfw_set_char_batch_group_defaults(&char_batch_group);
+
+    zfw_set_view_state_defaults(&view_state);
+
+    // Run the user-defined game initialisation function.
+    user_run_info->on_init_func(user_run_info->user_ptr, &user_func_data);
+
+    //
+    // Main Loop
+    //
+    double frame_time_last = glfwGetTime();
+    const int target_ticks_per_sec = 60;
+    const double target_tick_interval = 1.0 / target_ticks_per_sec;
+    double frame_time_interval_accum = target_tick_interval; // The assignment here ensures that a tick is always run on the first frame.
+
+    zfw_log("Entering the main loop...");
+
+    while (!glfwWindowShouldClose(glfw_window))
+    {
+        const zfw_vec_2d_i_t window_size_last = window_state.size;
+
+        glfwPollEvents();
+
+        if (user_run_info->on_window_resize_func && (window_state.size.x != window_size_last.x || window_state.size.y != window_size_last.y))
         {
-            zfw_set_sprite_batch_group_defaults(&sprite_batch_groups[i]);
+            // The user has defined a window resize function and the window has been resized, so call the function.
+            user_func_data.window_size = window_state.size;
+            user_run_info->on_window_resize_func(user_run_info->user_ptr, &user_func_data);
         }
 
-        zfw_set_char_batch_group_defaults(&char_batch_group);
+        zfw_update_gamepad_state(&input_state);
 
-        zfw_set_view_state_defaults(&view_state);
+        const double frame_time = glfwGetTime();
+        double frame_time_change = frame_time - frame_time_last;
 
-        // Run the user-defined game initialisation function.
-        user_run_info->on_init_func(user_run_info->user_ptr, &user_func_data);
-
-        //
-        // Main Loop
-        //
-        double frame_time_last = glfwGetTime();
-        const int target_ticks_per_sec = 60;
-        const double target_tick_interval = 1.0 / target_ticks_per_sec;
-        double frame_time_interval_accum = target_tick_interval; // The assignment here ensures that a tick is always run on the first frame.
-
-        zfw_log("Entering the main loop...");
-
-        zfw_bool_t glfw_window_should_close;
-
-        while (!(glfw_window_should_close = glfwWindowShouldClose(glfw_window)) && !restart)
+        // Handle frame time anomalies.
+        if (frame_time_change > target_tick_interval * 8)
         {
-            const zfw_vec_2d_i_t window_size_last = window_state.size;
+            frame_time_change = target_tick_interval;
+        }
 
-            glfwPollEvents();
+        if (frame_time_change < 0.0)
+        {
+            frame_time_change = 0.0;
+        }
 
-            if (user_run_info->on_window_resize_func && (window_state.size.x != window_size_last.x || window_state.size.y != window_size_last.y))
+        frame_time_interval_accum += frame_time_change;
+        frame_time_last = frame_time;
+
+        // Calculate tick count and handle the case where at least one tick occurred.
+        const int tick_count = (int)(frame_time_interval_accum / target_tick_interval);
+
+        if (tick_count > 0)
+        {
+            // Run the ticks.
+            for (int i = 0; i < tick_count; i++)
             {
-                // The user has defined a window resize function and the window has been resized, so call the function.
-                user_func_data.window_size = window_state.size;
-                user_run_info->on_window_resize_func(user_run_info->user_ptr, &user_func_data);
+                user_run_info->on_tick_func(user_run_info->user_ptr, &user_func_data, tick_count, frame_time_interval_accum);
+                frame_time_interval_accum -= target_tick_interval;
             }
 
-            zfw_update_gamepad_state(&input_state);
+            // Reset the mouse scroll now that the ticks are complete.
+            input_state.mouse_scroll = 0;
 
-            const double frame_time = glfwGetTime();
-            double frame_time_change = frame_time - frame_time_last;
+            // Update the tick input state for next time.
+            last_tick_input_state = input_state;
 
-            // Handle frame time anomalies.
-            if (frame_time_change > target_tick_interval * 8)
+            // If the user has requested a change to the fullscreen state, update it.
+            if (window_state.fullscreen != user_window_fullscreen)
             {
-                frame_time_change = target_tick_interval;
-            }
+                zfw_bool_t call_user_window_resize_func = ZFW_TRUE;
 
-            if (frame_time_change < 0.0)
-            {
-                frame_time_change = 0.0;
-            }
-
-            frame_time_interval_accum += frame_time_change;
-            frame_time_last = frame_time;
-
-            // Calculate tick count and handle the case where at least one tick occurred.
-            const int tick_count = (int)(frame_time_interval_accum / target_tick_interval);
-
-            if (tick_count > 0)
-            {
-                // Run the ticks.
-                for (int i = 0; i < tick_count; i++)
+                if (user_window_fullscreen)
                 {
-                    user_run_info->on_tick_func(user_run_info->user_ptr, &user_func_data, tick_count, frame_time_interval_accum);
-                    frame_time_interval_accum -= target_tick_interval;
-                }
+                    GLFWmonitor *const glfw_primary_monitor = glfwGetPrimaryMonitor();
 
-                // Reset the mouse scroll now that the ticks are complete.
-                input_state.mouse_scroll = 0;
-
-                // Update the tick input state for next time.
-                last_tick_input_state = input_state;
-
-                // If the user has requested a change to the fullscreen state, update it.
-                if (window_state.fullscreen != user_window_fullscreen)
-                {
-                    zfw_bool_t call_user_window_resize_func = ZFW_TRUE;
-
-                    if (user_window_fullscreen)
+                    if (glfw_primary_monitor)
                     {
-                        GLFWmonitor *const glfw_primary_monitor = glfwGetPrimaryMonitor();
+                        window_prefullscreen_state = window_state;
 
-                        if (glfw_primary_monitor)
-                        {
-                            window_prefullscreen_state = window_state;
-
-                            const GLFWvidmode *glfw_video_mode = glfwGetVideoMode(glfw_primary_monitor);
-                            glfwSetWindowMonitor(glfw_window, glfw_primary_monitor, 0, 0, glfw_video_mode->width, glfw_video_mode->height, glfw_video_mode->refreshRate);
-                        }
-                        else
-                        {
-                            zfw_log_error("Failed to switch to fullscreen as GLFW could not find a primary monitor.");
-                            call_user_window_resize_func = ZFW_FALSE;
-                        }
+                        const GLFWvidmode *glfw_video_mode = glfwGetVideoMode(glfw_primary_monitor);
+                        glfwSetWindowMonitor(glfw_window, glfw_primary_monitor, 0, 0, glfw_video_mode->width, glfw_video_mode->height, glfw_video_mode->refreshRate);
                     }
                     else
                     {
-                        glfwSetWindowMonitor(glfw_window, NULL, window_prefullscreen_state.pos.x, window_prefullscreen_state.pos.y, window_prefullscreen_state.size.x, window_prefullscreen_state.size.y, 0);
-                    }
-
-                    window_state.fullscreen = user_window_fullscreen;
-
-                    if (user_run_info->on_window_resize_func && call_user_window_resize_func)
-                    {
-                        user_func_data.window_size = window_state.size;
-                        user_run_info->on_window_resize_func(user_run_info->user_ptr, &user_func_data);
+                        zfw_log_error("Failed to switch to fullscreen as GLFW could not find a primary monitor.");
+                        call_user_window_resize_func = ZFW_FALSE;
                     }
                 }
+                else
+                {
+                    glfwSetWindowMonitor(glfw_window, NULL, window_prefullscreen_state.pos.x, window_prefullscreen_state.pos.y, window_prefullscreen_state.size.x, window_prefullscreen_state.size.y, 0);
+                }
 
-                // Render.
-                glClearColor(k_default_bg_color.r, k_default_bg_color.g, k_default_bg_color.b, k_default_bg_color.a);
-                glClear(GL_COLOR_BUFFER_BIT);
+                window_state.fullscreen = user_window_fullscreen;
 
-                zfw_render_sprite_and_character_batches(sprite_batch_groups, &char_batch_group, &view_state, window_state.size, &user_tex_data, &user_font_data, &builtin_shader_prog_data);
-
-                glfwSwapBuffers(glfw_window);
+                if (user_run_info->on_window_resize_func && call_user_window_resize_func)
+                {
+                    user_func_data.window_size = window_state.size;
+                    user_run_info->on_window_resize_func(user_run_info->user_ptr, &user_func_data);
+                }
             }
-        }
 
-        // Break out of the restart loop if a restart hasn't been requested, or if the window is closed.
-        if (!restart || glfw_window_should_close)
-        {
-            break;
-        }
+            // Render.
+            glClearColor(k_default_bg_color.r, k_default_bg_color.g, k_default_bg_color.b, k_default_bg_color.a);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-        restart = ZFW_FALSE; // By default, we will not restart in the next iteration.
+            zfw_render_sprite_and_character_batches(sprite_batch_groups, &char_batch_group, &view_state, window_state.size, &user_tex_data, &user_font_data, &builtin_shader_prog_data);
+
+            glfwSwapBuffers(glfw_window);
+        }
     }
 
     clean_game(&cleanup_data);
