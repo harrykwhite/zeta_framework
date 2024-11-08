@@ -44,12 +44,12 @@ typedef struct
 
 typedef struct
 {
-    int x, y, w, h;
+    int x, y, width, height;
 } zfw_rect_t;
 
 typedef struct
 {
-    float x, y, w, h;
+    float x, y, width, height;
 } zfw_rect_f_t;
 
 typedef struct
@@ -59,7 +59,7 @@ typedef struct
 
 typedef struct
 {
-    unsigned short x, y, w, h;
+    unsigned short x, y, width, height;
 } font_char_src_rect_t;
 
 zfw_orientation_id_t zfw_get_orientation(const zfw_vec_2d_t a, const zfw_vec_2d_t b, const zfw_vec_2d_t c);
@@ -70,7 +70,7 @@ zfw_bool_t zfw_is_pt_in_line_rect(const zfw_vec_2d_t pt, const zfw_line_t *const
 zfw_bool_t zfw_do_lines_inters(const zfw_line_t *const l1, const zfw_line_t *const l2);
 zfw_bool_t zfw_does_line_inters_rect_f(const zfw_line_t *const line, const zfw_rect_f_t *const rect);
 
-void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int w, const int h);
+void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height);
 void zfw_init_rect_f(zfw_rect_f_t *const rect, const float x, const float y, const float width, const float height);
 void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4]);
 
@@ -126,10 +126,10 @@ inline float zfw_get_vec_2d_mag(const zfw_vec_2d_t vec)
     return sqrt((vec.x * vec.x) + (vec.y * vec.y));
 }
 
-inline zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t v)
+inline zfw_vec_2d_t zfw_get_vec_2d_normalized(const zfw_vec_2d_t vec)
 {
-    const float vm = zfw_get_vec_2d_mag(v);
-    return zfw_create_vec_2d(v.x / vm, v.y / vm);
+    const float vm = zfw_get_vec_2d_mag(vec);
+    return zfw_create_vec_2d(vec.x / vm, vec.y / vm);
 }
 
 inline float zfw_get_dist(const zfw_vec_2d_t v1, const zfw_vec_2d_t v2)
@@ -192,54 +192,54 @@ inline void zfw_set_rect_f_pos(zfw_rect_f_t *const rect, const zfw_vec_2d_t pos)
 
 inline zfw_vec_2d_i_t zfw_get_rect_size(const zfw_rect_t *const rect)
 {
-    return zfw_create_vec_2d_i(rect->w, rect->h);
+    return zfw_create_vec_2d_i(rect->width, rect->height);
 }
 
 inline void zfw_set_rect_size(zfw_rect_t *const rect, const zfw_vec_2d_i_t size)
 {
-    rect->w = size.x;
-    rect->h = size.y;
+    rect->width = size.x;
+    rect->height = size.y;
 }
 
 inline zfw_vec_2d_t zfw_get_rect_f_size(const zfw_rect_f_t *const rect)
 {
-    return zfw_create_vec_2d(rect->w, rect->h);
+    return zfw_create_vec_2d(rect->width, rect->height);
 }
 
 inline void zfw_set_rect_f_size(zfw_rect_f_t *const rect, const zfw_vec_2d_t size)
 {
-    rect->w = size.x;
-    rect->h = size.y;
+    rect->width = size.x;
+    rect->height = size.y;
 }
 
 inline zfw_vec_2d_i_t zfw_get_rect_center(const zfw_rect_f_t *const rect)
 {
-    return zfw_create_vec_2d_i(rect->x + (rect->w / 2), rect->y + (rect->h / 2));
+    return zfw_create_vec_2d_i(rect->x + (rect->width / 2), rect->y + (rect->height / 2));
 }
 
 inline zfw_vec_2d_t zfw_get_rect_f_center(const zfw_rect_f_t *const rect)
 {
-    return zfw_create_vec_2d(rect->x + (rect->w / 2.0f), rect->y + (rect->h / 2.0f));
+    return zfw_create_vec_2d(rect->x + (rect->width / 2.0f), rect->y + (rect->height / 2.0f));
 }
 
 inline zfw_bool_t zfw_is_vec_2d_in_rect(const zfw_vec_2d_t vec, const zfw_rect_t *const rect)
 {
-    return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->w && vec.y < rect->y + rect->h;
+    return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
 }
 
 inline zfw_bool_t zfw_is_vec_2d_in_rect_f(const zfw_vec_2d_t vec, const zfw_rect_f_t *const rect)
 {
-    return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->w && vec.y < rect->y + rect->h;
+    return vec.x >= rect->x && vec.y >= rect->y && vec.x < rect->x + rect->width && vec.y < rect->y + rect->height;
 }
 
 inline zfw_bool_t zfw_do_rects_collide(const zfw_rect_t *const r1, const zfw_rect_t *const r2)
 {
-    return r1->x + r1->w > r2->x && r1->y + r1->h > r2->y && r1->x < r2->x + r2->w && r1->y < r2->y + r2->h;
+    return r1->x + r1->width > r2->x && r1->y + r1->height > r2->y && r1->x < r2->x + r2->width && r1->y < r2->y + r2->height;
 }
 
 inline zfw_bool_t zfw_do_rect_fs_collide(const zfw_rect_f_t *const r1, const zfw_rect_f_t *const r2)
 {
-    return r1->x + r1->w > r2->x && r1->y + r1->h > r2->y && r1->x < r2->x + r2->w && r1->y < r2->y + r2->h;
+    return r1->x + r1->width > r2->x && r1->y + r1->height > r2->y && r1->x < r2->x + r2->width && r1->y < r2->y + r2->height;
 }
 
 #endif

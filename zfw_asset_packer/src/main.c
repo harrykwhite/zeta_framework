@@ -417,8 +417,8 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
 
             char_src_rects[font_char_index].x = char_draw_x;
             char_src_rects[font_char_index].y = char_draw_y;
-            char_src_rects[font_char_index].w = ft_face->glyph->bitmap.width;
-            char_src_rects[font_char_index].h = ft_face->glyph->bitmap.rows;
+            char_src_rects[font_char_index].width = ft_face->glyph->bitmap.width;
+            char_src_rects[font_char_index].height = ft_face->glyph->bitmap.rows;
 
             for (int k = 0; k < ZFW_FONT_CHAR_RANGE_SIZE; k++)
             {
@@ -429,9 +429,9 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
             }
 
             // Update the font texture's pixel data with the character.
-            for (int y = 0; y < char_src_rects[font_char_index].h; y++)
+            for (int y = 0; y < char_src_rects[font_char_index].height; y++)
             {
-                for (int x = 0; x < char_src_rects[font_char_index].w; x++)
+                for (int x = 0; x < char_src_rects[font_char_index].width; x++)
                 {
                     const unsigned char px_alpha = ft_face->glyph->bitmap.buffer[(y * ft_face->glyph->bitmap.width) + x];
 
@@ -443,7 +443,7 @@ static zfw_bool_t pack_fonts(cJSON *const c_json, char src_asset_file_path_buf[S
                 }
             }
 
-            char_draw_x += char_src_rects[font_char_index].w;
+            char_draw_x += char_src_rects[font_char_index].width;
         }
 
         FT_Done_Face(ft_face);

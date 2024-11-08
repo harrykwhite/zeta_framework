@@ -1,6 +1,7 @@
 #include <zfw_common_math.h>
 
 #include <string.h>
+#include <assert.h>
 
 float zfw_get_angle_diff(const float a, const float b)
 {
@@ -48,23 +49,23 @@ void zfw_init_line_rect_f(zfw_rect_f_t *const rect, const zfw_line_t *const line
     if (line->a.x <= line->b.x)
     {
         rect->x = line->a.x;
-        rect->w = line->b.x - line->a.x;
+        rect->width = line->b.x - line->a.x;
     }
     else
     {
         rect->x = line->b.x;
-        rect->w = line->a.x - line->b.x;
+        rect->width = line->a.x - line->b.x;
     }
 
     if (line->a.y <= line->b.y)
     {
         rect->y = line->a.y;
-        rect->h = line->b.y - line->a.y;
+        rect->height = line->b.y - line->a.y;
     }
     else
     {
         rect->y = line->b.y;
-        rect->h = line->a.y - line->b.y;
+        rect->height = line->a.y - line->b.y;
     }
 }
 
@@ -141,16 +142,16 @@ void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int w
 {
     rect->x = x;
     rect->y = y;
-    rect->w = width;
-    rect->h = height;
+    rect->width = width;
+    rect->height = height;
 }
 
-void zfw_init_rect_f(zfw_rect_f_t *const rect, const float x, const float y, const float w, const float height)
+void zfw_init_rect_f(zfw_rect_f_t *const rect, const float x, const float y, const float width, const float height)
 {
     rect->x = x;
     rect->y = y;
-    rect->w = w;
-    rect->h = height;
+    rect->width = width;
+    rect->height = height;
 }
 
 void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4])
@@ -158,7 +159,7 @@ void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4])
     // Go around clockwise starting from the top-left.
     edges[0].a.x = rect->x;
     edges[0].a.y = rect->y;
-    edges[0].b.x = rect->x + rect->w;
+    edges[0].b.x = rect->x + rect->width;
     edges[0].b.y = rect->y;
 
     for (int i = 1; i < 4; ++i)
@@ -170,15 +171,15 @@ void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4])
         switch (i)
         {
             case 1:
-                edges[i].b.y += rect->h;
+                edges[i].b.y += rect->height;
                 break;
 
             case 2:
-                edges[i].b.x -= rect->w;
+                edges[i].b.x -= rect->width;
                 break;
 
             case 3:
-                edges[i].b.y -= rect->h;
+                edges[i].b.y -= rect->height;
                 break;
         }
     }
