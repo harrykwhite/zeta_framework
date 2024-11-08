@@ -73,6 +73,7 @@ zfw_bool_t zfw_does_line_inters_rect_f(const zfw_line_t *const line, const zfw_r
 void zfw_init_rect(zfw_rect_t *const rect, const int x, const int y, const int width, const int height);
 void zfw_init_rect_f(zfw_rect_f_t *const rect, const float x, const float y, const float width, const float height);
 void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4]);
+zfw_rect_f_t zfw_get_rect_fs_merged(const zfw_rect_f_t *const rects, const int rect_cnt);
 
 void zfw_init_identity_matrix_4x4(zfw_matrix_4x4_t *const mat);
 void zfw_init_ortho_matrix_4x4(zfw_matrix_4x4_t *const mat, const float left, const float right, const float bottom, const float top, const float near, const float far);

@@ -185,6 +185,25 @@ void zfw_get_rect_f_edges(const zfw_rect_f_t *const rect, zfw_line_t edges[4])
     }
 }
 
+zfw_rect_f_t zfw_get_rect_fs_merged(const zfw_rect_f_t *const rects, const int rect_cnt)
+{
+    float x_min = rects[0].x;
+    float y_min = rects[0].y;
+    float x_max = rects[0].x + rects[0].width;
+    float y_max = rects[0].y + rects[0].height;
+
+    for (int i = 1; i < rect_cnt; ++i)
+    {
+        x_min = ZFW_MIN(rects[i].x, x_min);
+        y_min = ZFW_MIN(rects[i].y, y_min);
+        x_max = ZFW_MAX(rects[i].x + rects[i].width, x_max);
+        y_max = ZFW_MAX(rects[i].y + rects[i].height, y_max);
+    }
+
+    const zfw_rect_f_t merged = {x_min, y_min, x_max - x_min, y_max - y_min};
+    return merged;
+}
+
 void zfw_init_identity_matrix_4x4(zfw_matrix_4x4_t *const mat)
 {
     memset(mat, 0, sizeof(*mat));
