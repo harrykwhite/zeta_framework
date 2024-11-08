@@ -27,7 +27,7 @@ void zfw_update_gamepad_state(zfw_input_state_t *const input_state)
         else
         {
             zfw_log_error("Failed to retrieve the state of gamepad with GLFW joystick index %d.", input_state->gamepad_glfw_joystick_index);
-            zfw_reset_gamepad_state(&input_state);
+            zfw_reset_gamepad_state(input_state);
         }
     }
 }
