@@ -4,6 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <zfw_common_debug.h>
 
+#define TARG_TICKS_PER_SEC 60
+#define TARG_TICK_INTERVAL (1.0 / TARG_TICKS_PER_SEC)
+
 typedef struct
 {
     zfw_mem_arena_t *main_mem_arena;
@@ -90,6 +93,24 @@ static void clean_game(game_cleanup_data_t *const cleanup_data)
     {
         zfw_clean_mem_arena(cleanup_data->main_mem_arena);
     }
+}
+
+static double calc_frame_time_change(const double frame_time, const double frame_time_last)
+{
+    double change = frame_time - frame_time_last;
+
+    // Handle frame time anomalies.
+    if (change > TARG_TICK_INTERVAL * 8)
+    {
+        change = TARG_TICK_INTERVAL;
+    }
+
+    if (change < 0.0)
+    {
+        change = 0.0;
+    }
+
+    return change;
 }
 
 static void glfw_window_size_callback(GLFWwindow *glfw_window, int width, int height)
@@ -365,12 +386,24 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     zfw_log("Showing the GLFW window...");
     glfwShowWindow(glfw_window);
 
-    // This represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state
-    // will not be updated until a specific point in the main loop.
+    // This represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state will not be updated until a specific point in the main loop.
     zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen;
 
     // This is to be a copy of the input state at the point of the last tick.
     zfw_input_state_t last_tick_input_state = {0};
+
+    // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
+    window_state_t window_prefullscreen_state;
+
+    // Set rendering defaults.
+    for (int i = 0; i < ZFW_SPRITE_BATCH_GROUP_COUNT; i++)
+    {
+        zfw_set_sprite_batch_group_defaults(&sprite_batch_groups[i]);
+    }
+
+    zfw_set_char_batch_group_defaults(&char_batch_group);
+
+    zfw_set_view_state_defaults(&view_state);
 
     // This is the data provided to the user in their defined game functions.
     zfw_user_func_data_t user_func_data;
@@ -386,19 +419,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     user_func_data.char_batch_group = &char_batch_group;
     user_func_data.view_state = &view_state;
 
-    // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
-    window_state_t window_prefullscreen_state;
-
-    // Set rendering defaults.
-    for (int i = 0; i < ZFW_SPRITE_BATCH_GROUP_COUNT; i++)
-    {
-        zfw_set_sprite_batch_group_defaults(&sprite_batch_groups[i]);
-    }
-
-    zfw_set_char_batch_group_defaults(&char_batch_group);
-
-    zfw_set_view_state_defaults(&view_state);
-
     // Run the user-defined game initialisation function.
     user_run_info->on_init_func(user_run_info->user_ptr, &user_func_data);
 
@@ -406,9 +426,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     // Main Loop
     //
     double frame_time_last = glfwGetTime();
-    const int target_ticks_per_sec = 60;
-    const double target_tick_interval = 1.0 / target_ticks_per_sec;
-    double frame_time_interval_accum = target_tick_interval; // The assignment here ensures that a tick is always run on the first frame.
+    double frame_time_change_accum = TARG_TICK_INTERVAL; // The assignment here ensures that a tick is always run on the first frame.
 
     zfw_log("Entering the main loop...");
 
@@ -428,32 +446,19 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
         zfw_update_gamepad_state(&input_state);
 
         const double frame_time = glfwGetTime();
-        double frame_time_change = frame_time - frame_time_last;
-
-        // Handle frame time anomalies.
-        if (frame_time_change > target_tick_interval * 8)
-        {
-            frame_time_change = target_tick_interval;
-        }
-
-        if (frame_time_change < 0.0)
-        {
-            frame_time_change = 0.0;
-        }
-
-        frame_time_interval_accum += frame_time_change;
-        frame_time_last = frame_time;
+        const double frame_time_change = calc_frame_time_change(frame_time, frame_time_last);
+        frame_time_change_accum += frame_time_change;
 
         // Calculate tick count and handle the case where at least one tick occurred.
-        const int tick_count = (int)(frame_time_interval_accum / target_tick_interval);
+        const int tick_count = (int)(frame_time_change_accum / TARG_TICK_INTERVAL);
 
         if (tick_count > 0)
         {
             // Run the ticks.
             for (int i = 0; i < tick_count; i++)
             {
-                user_run_info->on_tick_func(user_run_info->user_ptr, &user_func_data, tick_count, frame_time_interval_accum);
-                frame_time_interval_accum -= target_tick_interval;
+                user_run_info->on_tick_func(user_run_info->user_ptr, &user_func_data, tick_count, frame_time_change_accum);
+                frame_time_change_accum -= TARG_TICK_INTERVAL;
             }
 
             // Reset the mouse scroll now that the ticks are complete.
@@ -506,6 +511,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
             glfwSwapBuffers(glfw_window);
         }
+
+        // Update the last frame time to the current.
+        frame_time_last = frame_time;
     }
 
     clean_game(&cleanup_data);
