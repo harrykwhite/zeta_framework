@@ -48,7 +48,7 @@ typedef struct
     zfw_on_game_tick_user_func_t on_tick_func;
     zfw_on_window_resize_user_func_t on_window_resize_func;
 
-    void *user_ptr;
+    void *user_ptr; // The user can have this point to whatever they want (e.g. a struct containing persistent game state data).
 } zfw_user_game_run_info_t;
 
 zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info);

@@ -348,10 +348,11 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
     cleanup_data.builtin_shader_prog_data = &builtin_shader_prog_data;
 
-    // Set up rendering.
+    // Set up blending.
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Set up sprite batch groups.
     zfw_sprite_batch_group_t sprite_batch_groups[ZFW_SPRITE_BATCH_GROUP_COUNT] = {0};
     cleanup_data.sprite_batch_groups = sprite_batch_groups;
 
@@ -359,51 +360,43 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     {
         if (!zfw_init_sprite_batch_group(&sprite_batch_groups[i], &main_mem_arena))
         {
+            zfw_log("Failed to initialize a sprite batch group!");
             clean_game(&cleanup_data);
             return ZFW_FALSE;
         }
 
         cleanup_data.sprite_batch_groups_cleanup_count++;
+
+        zfw_set_sprite_batch_group_defaults(&sprite_batch_groups[i]);
     }
 
     zfw_log("Successfully set up sprite batch groups!");
 
+    // Set up the character batch group.
     zfw_char_batch_group_t char_batch_group = {0};
 
     if (!zfw_init_char_batch_group(&char_batch_group, &main_mem_arena))
     {
+        zfw_log("Failed to initialize the character batch group!");
         clean_game(&cleanup_data);
         return ZFW_FALSE;
     }
 
     cleanup_data.char_batch_group = &char_batch_group;
 
+    zfw_set_char_batch_group_defaults(&char_batch_group);
+
     zfw_log("Successfully set up the character batch group!");
 
+    // Set up the view state.
     zfw_view_state_t view_state;
-
-    // Show the window now that things have been set up.
-    zfw_log("Showing the GLFW window...");
-    glfwShowWindow(glfw_window);
+    zfw_set_view_state_defaults(&view_state);
 
     // This represents whether or not the user wants the window to be in fullscreen, assignable by them through pointers passed into their game functions. The actual state will not be updated until a specific point in the main loop.
     zfw_bool_t user_window_fullscreen = user_run_info->init_window_fullscreen;
 
     // This is to be a copy of the input state at the point of the last tick.
     zfw_input_state_t last_tick_input_state = {0};
-
-    // This is to be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
-    window_state_t window_prefullscreen_state;
-
-    // Set rendering defaults.
-    for (int i = 0; i < ZFW_SPRITE_BATCH_GROUP_COUNT; i++)
-    {
-        zfw_set_sprite_batch_group_defaults(&sprite_batch_groups[i]);
-    }
-
-    zfw_set_char_batch_group_defaults(&char_batch_group);
-
-    zfw_set_view_state_defaults(&view_state);
 
     // This is the data provided to the user in their defined game functions.
     zfw_user_func_data_t user_func_data;
@@ -422,11 +415,17 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     // Run the user-defined game initialisation function.
     user_run_info->on_init_func(user_run_info->user_ptr, &user_func_data);
 
+    // Show the window now that initialisation is complete.
+    zfw_log("Showing the GLFW window...");
+    glfwShowWindow(glfw_window);
+
     //
     // Main Loop
     //
     double frame_time = glfwGetTime();
     double frame_time_change_accum = TARG_TICK_INTERVAL; // The assignment here ensures that a tick is always run on the first frame.
+
+    window_state_t window_prefullscreen_state; // To be a copy of the window state prior to switching from windowed mode to fullscreen, so that this state can be returned to when switching back.
 
     zfw_log("Entering the main loop...");
 
