@@ -425,7 +425,7 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
     //
     // Main Loop
     //
-    double frame_time_last = glfwGetTime();
+    double frame_time = glfwGetTime();
     double frame_time_change_accum = TARG_TICK_INTERVAL; // The assignment here ensures that a tick is always run on the first frame.
 
     zfw_log("Entering the main loop...");
@@ -445,7 +445,9 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
         zfw_update_gamepad_state(&input_state);
 
-        const double frame_time = glfwGetTime();
+        // Update frame time data.
+        const double frame_time_last = frame_time;
+        frame_time = glfwGetTime();
         const double frame_time_change = calc_frame_time_change(frame_time, frame_time_last);
         frame_time_change_accum += frame_time_change;
 
@@ -511,9 +513,6 @@ zfw_bool_t zfw_run_game(const zfw_user_game_run_info_t *const user_run_info)
 
             glfwSwapBuffers(glfw_window);
         }
-
-        // Update the last frame time to the current.
-        frame_time_last = frame_time;
     }
 
     clean_game(&cleanup_data);
